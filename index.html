@@ -150,8 +150,8 @@
     </div>
     <div class="card">
       <div class="section-label">Step 1 — your tasks</div>
-      <p style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">One per line. Add <code>| hours</code> after each task if you have them.</p>
-      <textarea id="paste-input" placeholder="SPP Airflow to Spark migration | 20&#10;Midline pricing architecture discussion | 4&#10;RevPAN data validation | 2"></textarea>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">One per line. Format: <code>task | hours | date</code> — hours and date are optional but date helps attribution accuracy. Date can be <code>dd-mm-yyyy</code>, <code>dd/mm/yyyy</code>, or a week reference like <code>w/c 13-03-2026</code>.</p>
+      <textarea id="paste-input" placeholder="SPP Airflow to Spark migration | 20 | 23-01-2026&#10;Midline pricing architecture discussion | 4 | 17-04-2026&#10;RevPAN data validation | 2 | 10-04-2026&#10;Market aggregates kickoff | 0.5"></textarea>
       <div style="margin-top:10px;max-width:260px;">
         <div class="field">
           <label>Your name (optional)</label>
@@ -327,9 +327,17 @@ function getMilestonesText() {
 function copyPrompt() {
   const text = document.getElementById('paste-input').value.trim();
   if(!text) return;
+
   const tasks = text.split('\n').map(l=>l.trim()).filter(Boolean).map((l,i)=>{
-    const [task,hrs]=l.split('|').map(p=>p.trim());
-    return `${i+1}. ${task}${hrs?' | '+hrs+' hours':''}`;
+    const parts = l.split('|').map(p=>p.trim());
+    const task = parts[0];
+    const hrs = parts[1] || null;
+    const date = parts[2] || null;
+    let out = `${i+1}. ${task}`;
+    if(hrs) out += ` | ${hrs} hours`;
+    if(date) out += ` | date: ${date}`;
+    else out += ` | date: unknown`;
+    return out;
   }).join('\n');
 
   const prompt = `Attribute these tasks to Beyond–Awaze partnership workstreams and milestones. Return ONLY a raw JSON array — no explanation, no markdown fences, just the JSON.
@@ -342,10 +350,16 @@ ${getMilestonesText()}
 Each JSON item must have:
 - "task": original task text
 - "hours": number or null
+- "date": the date string as provided, or null
 - "ws": e.g. "WS7"
 - "milestone": exact milestone name from the list above
 - "confidence": "High", "Medium", or "Low"
 - "reason": one sentence
+
+Important attribution rules:
+- For tasks with a date between March 1 2026 and May 30 2026, strongly default to WS7 (UK Accelerated Onboarding) unless the task is clearly about portfolio-level performance reporting, in which case use WS2. The reason: almost all work in this period is directly supporting the Cottages.com POC even if it superficially resembles other workstream activity (data modelling, integration, seasonality, market aggregates etc.).
+- Only override this WS7 default for Mar–May 2026 tasks if the description unambiguously points elsewhere.
+- For tasks with unknown dates, use your best judgement based on the task content alone.
 
 Tasks:
 ${tasks}`;
