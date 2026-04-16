@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Awaze Hours Attribution · Beyond</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f8f7f4;
+    --surface: #ffffff;
+    --border: #e2e0da;
+    --border-strong: #c8c5bc;
+    --text: #1a1916;
+    --text-muted: #6b6860;
+    --text-faint: #9e9b94;
+    --teal: #3bc1cc;
+    --dark: #252f38;
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  header { background: var(--dark); padding: 0 2rem; height: 56px; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 100; }
+  .logo { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--teal); letter-spacing: 0.08em; }
+  .logo span { color: rgba(255,255,255,0.3); }
+  header h1 { font-size: 14px; font-weight: 500; color: #fff; }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  #version-badge { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.35); }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
+  .tab { font-size: 13px; font-weight: 500; padding: 10px 18px; cursor: pointer; color: var(--text-muted); border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: 'DM Sans', sans-serif; transition: color 0.15s; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--dark); border-bottom-color: var(--teal); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem; }
+  .section-label { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.75rem; }
+
+  .info-box { background: #f0fbfc; border: 1px solid #b8edf1; border-radius: var(--radius); padding: 12px 16px; font-size: 13px; color: #1a6b72; margin-bottom: 1rem; line-height: 1.6; }
+  .info-box strong { font-weight: 500; }
+  code { font-family: 'DM Mono', monospace; font-size: 12px; background: rgba(0,0,0,0.06); padding: 1px 6px; border-radius: 4px; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  label { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; }
+  input[type=text], input[type=date], input[type=number], select, textarea {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 9px 12px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+    background: var(--surface); color: var(--text); width: 100%;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(59,193,204,0.12); }
+  textarea { resize: vertical; min-height: 110px; }
+  select { cursor: pointer; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-grid-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; }
+  .form-stack { display: flex; flex-direction: column; gap: 12px; }
+
+  .btn { border-radius: var(--radius); font-size: 13px; font-weight: 500; cursor: pointer; padding: 9px 18px; border: none; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+  .btn-primary { background: var(--dark); color: #fff; }
+  .btn-primary:hover { background: var(--teal); color: var(--dark); }
+  .btn-ghost { background: transparent; border: 1px solid var(--border-strong); color: var(--text); }
+  .btn-ghost:hover { background: var(--bg); }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .btn-confirm { background: #e6f7f8; border: 1px solid #7dd6dc; color: #1a6b72; font-size: 12px; padding: 6px 12px; border-radius: var(--radius); cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; }
+  .btn-confirm:hover { background: #c5eef1; }
+  .btn-reject { background: transparent; border: 1px solid var(--border); color: var(--text-muted); font-size: 12px; padding: 6px 12px; border-radius: var(--radius); cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .btn-row { display: flex; gap: 8px; align-items: center; margin-top: 1rem; flex-wrap: wrap; }
+  .hint { font-size: 12px; color: var(--text-faint); }
+  .err { font-size: 12px; color: #c0392b; }
+  .ok { font-size: 12px; color: #1a6b72; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+  .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; }
+  .stat-box .sv { font-size: 26px; font-weight: 300; color: var(--text); letter-spacing: -0.02em; }
+  .stat-box .sl { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+
+  .pill { display: inline-block; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 20px; white-space: nowrap; letter-spacing: 0.03em; }
+  .ws1{background:#e6f7f0;color:#0d5c3e} .ws2{background:#e8f2fd;color:#1a4d8a}
+  .ws3{background:#eeecff;color:#3730a3} .ws4{background:#fef3e2;color:#7c4a0d}
+  .ws5{background:#fde8f2;color:#862156} .ws6{background:#f0eeeb;color:#4a4740}
+  .ws7{background:#fdecea;color:#8c2a1c}
+  .conf-high{background:#eaf5e4;color:#2d6a1f} .conf-med{background:#fef3e2;color:#7c4a0d} .conf-low{background:#fdecea;color:#8c2a1c}
+
+  .suggestion-block { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; background: var(--bg); transition: opacity 0.2s; }
+  .suggestion-block.confirmed { background: #f0fbfc; border-color: #7dd6dc; opacity: 0.7; }
+  .suggestion-block.rejected { opacity: 0.25; }
+  .s-task { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 8px; }
+  .s-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
+  .s-hrs { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px; color: var(--text); }
+  .s-reason { font-size: 12px; color: var(--text-muted); font-style: italic; line-height: 1.5; }
+  .edit-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { text-align: left; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  tbody td { padding: 10px 10px; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--text); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--bg); }
+
+  .empty { text-align: center; padding: 3rem 1rem; color: var(--text-faint); font-size: 13px; }
+
+  .ms-group { margin-bottom: 14px; }
+  .ms-group-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; color: var(--text-muted); font-weight: 500; }
+  .ms-list { display: flex; flex-direction: column; gap: 4px; margin-left: 4px; }
+  .ms-item { display: flex; gap: 8px; align-items: baseline; font-size: 12px; color: var(--text-muted); }
+  .ms-item::before { content: '—'; color: var(--teal); font-family: 'DM Mono', monospace; flex-shrink: 0; }
+
+  .note-box { background: #fffbea; border: 1px solid #f0d060; border-radius: var(--radius); padding: 12px 16px; font-size: 13px; color: #6b5a00; margin-bottom: 1rem; line-height: 1.6; }
+
+  @media (max-width: 640px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .form-grid, .form-grid-3, .edit-row { grid-template-columns: 1fr; }
+    .container { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">B <span>×</span> A</div>
+  <h1>Hours Attribution</h1>
+  <div class="header-right">
+    <span id="version-badge">milestones: Apr 2026</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="note-box">
+    <strong>AI suggestions require Claude.</strong> The "Paste &amp; suggest" flow sends tasks to Claude and you paste the JSON back. Open this page alongside <a href="https://claude.ai" target="_blank" style="color:inherit;text-decoration:underline">claude.ai</a> for the best experience. Manual entry works standalone.
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('paste')">Paste &amp; suggest</button>
+    <button class="tab" onclick="switchTab('manual')">Add manually</button>
+    <button class="tab" onclick="switchTab('log')">Log <span id="log-count"></span></button>
+    <button class="tab" onclick="switchTab('milestones')">Milestones</button>
+  </div>
+
+  <!-- PASTE TAB -->
+  <div class="tab-content active" id="tab-paste">
+    <div class="info-box">
+      <strong>Step 1:</strong> Paste tasks below → <strong>Copy prompt</strong> → paste into Claude → Claude replies with JSON → paste JSON into Step 2.
+    </div>
+    <div class="card">
+      <div class="section-label">Step 1 — your tasks</div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">One per line. Add <code>| hours</code> after each task if you have them.</p>
+      <textarea id="paste-input" placeholder="SPP Airflow to Spark migration | 20&#10;Midline pricing architecture discussion | 4&#10;RevPAN data validation | 2"></textarea>
+      <div style="margin-top:10px;max-width:260px;">
+        <div class="field">
+          <label>Your name (optional)</label>
+          <input type="text" id="paste-person" placeholder="e.g. Vincent Mechele" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="copyPrompt()">Copy prompt for Claude</button>
+        <span id="copy-msg" class="ok" style="display:none">Copied — paste into Claude chat</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Step 2 — paste Claude's JSON reply</div>
+      <textarea id="json-input" placeholder='Paste the JSON array Claude returns here…' style="min-height:80px;font-family:&apos;DM Mono&apos;,monospace;font-size:12px;"></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="loadJSON()">Load attributions</button>
+        <span id="json-msg" class="err"></span>
+      </div>
+    </div>
+
+    <div id="suggestions-area"></div>
+    <div id="confirm-all-row" style="display:none;" class="btn-row">
+      <button class="btn btn-primary" onclick="confirmAll()">Add all to log</button>
+      <span class="hint" id="confirm-hint"></span>
+    </div>
+  </div>
+
+  <!-- MANUAL TAB -->
+  <div class="tab-content" id="tab-manual">
+    <div class="card">
+      <div class="section-label">Add entry</div>
+      <div class="form-stack">
+        <div class="form-grid-3">
+          <div class="field"><label>Task description</label>
+            <input type="text" id="f-task" placeholder="e.g. Midline pricing architecture review" />
+          </div>
+          <div class="field"><label>Week of</label><input type="date" id="f-week" /></div>
+          <div class="field"><label>Hours</label><input type="number" id="f-hours" min="0.25" step="0.25" placeholder="4" /></div>
+        </div>
+        <div class="form-grid">
+          <div class="field"><label>Workstream</label>
+            <select id="f-ws" onchange="updateMilestoneDropdown('f-ws','f-milestone')">
+              <option value="" disabled selected>Select…</option>
+            </select>
+          </div>
+          <div class="field"><label>Milestone</label>
+            <select id="f-milestone"><option value="" disabled selected>Select workstream first…</option></select>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="field"><label>Person</label><input type="text" id="f-person" placeholder="Your name" /></div>
+          <div class="field"><label>Confidence</label>
+            <select id="f-conf">
+              <option value="High">High — clear match</option>
+              <option value="Medium" selected>Medium — reasonable fit</option>
+              <option value="Low">Low — best guess</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="addManualEntry()">Add to log</button>
+        <button class="btn btn-ghost" onclick="clearManual()">Clear</button>
+        <span id="m-msg" class="err"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOG TAB -->
+  <div class="tab-content" id="tab-log">
+    <div class="stats-row">
+      <div class="stat-box"><div class="sv" id="s-total">0</div><div class="sl">Total hours</div></div>
+      <div class="stat-box"><div class="sv" id="s-entries">0</div><div class="sl">Entries</div></div>
+      <div class="stat-box"><div class="sv" id="s-ws7">0</div><div class="sl">WS7 hours</div></div>
+      <div class="stat-box"><div class="sv" id="s-people">0</div><div class="sl">Contributors</div></div>
+    </div>
+    <div class="card">
+      <div id="log-area"><div class="empty">No entries yet</div></div>
+    </div>
+    <div class="btn-row" style="margin-top:0.5rem;">
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV()">Export CSV</button>
+    </div>
+  </div>
+
+  <!-- MILESTONES TAB -->
+  <div class="tab-content" id="tab-milestones">
+    <div class="card">
+      <div class="section-label">Update milestones</div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">When the spreadsheet changes, paste the new milestone list here and click <strong>Copy parse prompt</strong>. Paste into Claude, then paste the JSON response below.</p>
+      <textarea id="ms-raw-input" placeholder="Paste milestone names and parent workstreams here — one per line, e.g.:&#10;Booking Curve Analysis | WS1&#10;Seasonality Curve Review | WS1&#10;..." style="min-height:100px;"></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="copyMilestonePrompt()">Copy parse prompt</button>
+        <span id="ms-copy-msg" class="ok" style="display:none">Copied — paste into Claude</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-label">Paste Claude's JSON response</div>
+      <textarea id="ms-json-input" placeholder='{"WS1": ["Milestone A", "Milestone B"], "WS2": [...]}' style="min-height:70px;font-family:&apos;DM Mono&apos;,monospace;font-size:12px;"></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="loadMilestones()">Apply update</button>
+        <span id="ms-msg" class="err"></span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-label">Current milestones</div>
+      <div id="ms-display"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const WS_LABELS = {
+  WS1:"WS1 — Data Modelling, Market Prep & Revenue Management",
+  WS2:"WS2 — Performance Reporting & Listing Management",
+  WS3:"WS3 — Integration & Data Foundation",
+  WS4:"WS4 — Onboarding & Ongoing Support",
+  WS5:"WS5 — Owner Communication & Engagement",
+  WS6:"WS6 — Commercial & Legal",
+  WS7:"WS7 — UK Accelerated Onboarding (Cottages.com)"
+};
+const WS_CLASS={WS1:"ws1",WS2:"ws2",WS3:"ws3",WS4:"ws4",WS5:"ws5",WS6:"ws6",WS7:"ws7"};
+
+let MILESTONES = {
+  WS1:["Booking Curve Analysis & Calibration","Seasonality Curve Review & Adjustment","Market-by-Market Launch Preparation","All Agreed Markets Launched","Maintenance Operating Model Defined","RM–Awaze Operating Relationship Agreed","RM Operating at Scale"],
+  WS2:["Reporting Framework Defined","Agreement on Portfolio Management RM Flow","Interim Manual Reporting Operational","Manual 120K Portfolio View Available","Regional → Cohort → Listing Views Live in Tool","Portfolio View of 120K Listings Live in Tool","Beyond RM Exits Interim Reporting","Interim Manual Owner Communications Process","Owner-Facing UI/UX Layer Live"],
+  WS3:["Data Quality Conclusions from All POCs Reviewed","PMS Integration Feasibility Assessed","Division of Work Defined","S3 Scaled and Live Across All Agreed Markets","API Designed","API Built and Validated","All Listings Transitioned from S3 to API"],
+  WS4:["RM–Awaze Operating Relationship Agreed","Onboarding Plan Defined and Agreed","Weekly Operating Cadence Established","Awaze Team Onboarded","Training and Enablement Delivered","Internal Performance Reporting Framework Prepared","AM/CS Handling Questions Independently","Beyond RM Exits Day-to-Day WS4 Involvement"],
+  WS5:["Owner Engagement Comms Approach Defined","Owner Engagement Repricing Approach Defined","Lightweight Explainability for Owners Developed","Tooling and Formats Identified","Owner Comms Operational at Scale"],
+  WS6:["SOW #00 (UK POC) Executed","Penalty Clause and DK/IT Listing Risk Resolved","Master Partnership Agreement / MSA Executed","API Integration Commercial Terms Agreed","WS2 Commercial Terms Agreed","Ongoing RM Support Billing Model Agreed","Commercial Review Cadence Established"],
+  WS7:["Data Integrity — Data QA","Data Modelling — Booking Curves & Seasonality","Pricing — Base Price & Midline Setting","Pricing — Listings Calibration","Pricing — Daily Price Posting","Operating Guidelines — Revenue Management Process","Operating Guidelines — Revenue Management Support","Operating Guidelines — POC Reporting","Operating Guidelines — Reporting & Explainability"]
+};
+
+let entries = [], suggestions = [];
+
+function switchTab(t) {
+  const names = ['paste','manual','log','milestones'];
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',names[i]===t));
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  if(t==='log') renderLog();
+  if(t==='milestones') renderMilestoneDisplay();
+  if(t==='manual') populateWSDropdown();
+}
+
+function populateWSDropdown() {
+  const sel = document.getElementById('f-ws');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="" disabled>Select…</option>';
+  Object.keys(MILESTONES).forEach(ws => {
+    const o = document.createElement('option');
+    o.value=ws; o.text=WS_LABELS[ws]||ws;
+    if(ws===cur) o.selected=true;
+    sel.appendChild(o);
+  });
+}
+
+function updateMilestoneDropdown(wsId, msId) {
+  const ws = document.getElementById(wsId).value;
+  const sel = document.getElementById(msId);
+  sel.innerHTML = ws
+    ? (MILESTONES[ws]||[]).map(m=>`<option value="${m}">${m}</option>`).join('')
+    : '<option value="" disabled selected>Select workstream first…</option>';
+}
+
+function getMilestonesText() {
+  return Object.entries(MILESTONES).map(([ws,ms])=>
+    `${ws} (${WS_LABELS[ws]||ws}):\n${ms.map(m=>'  - '+m).join('\n')}`
+  ).join('\n\n');
+}
+
+function copyPrompt() {
+  const text = document.getElementById('paste-input').value.trim();
+  if(!text) return;
+  const tasks = text.split('\n').map(l=>l.trim()).filter(Boolean).map((l,i)=>{
+    const [task,hrs]=l.split('|').map(p=>p.trim());
+    return `${i+1}. ${task}${hrs?' | '+hrs+' hours':''}`;
+  }).join('\n');
+
+  const prompt = `Attribute these tasks to Beyond–Awaze partnership workstreams and milestones. Return ONLY a raw JSON array — no explanation, no markdown fences, just the JSON.
+
+You MUST only use milestone names that exist exactly in the list below. Do not invent or paraphrase milestones.
+
+Available workstreams and milestones:
+${getMilestonesText()}
+
+Each JSON item must have:
+- "task": original task text
+- "hours": number or null
+- "ws": e.g. "WS7"
+- "milestone": exact milestone name from the list above
+- "confidence": "High", "Medium", or "Low"
+- "reason": one sentence
+
+Tasks:
+${tasks}`;
+
+  navigator.clipboard.writeText(prompt).then(()=>{
+    const el = document.getElementById('copy-msg');
+    el.style.display='inline';
+    setTimeout(()=>{ el.style.display='none'; }, 3000);
+  });
+}
+
+function loadJSON() {
+  const raw = document.getElementById('json-input').value.trim();
+  const msg = document.getElementById('json-msg');
+  try {
+    suggestions = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    if(!Array.isArray(suggestions)) throw new Error();
+    msg.textContent='';
+    renderSuggestions();
+  } catch(e) {
+    msg.textContent="Could not parse — copy the full JSON array from Claude's reply";
+  }
+}
+
+function renderSuggestions() {
+  const area = document.getElementById('suggestions-area');
+  const today = new Date().toISOString().split('T')[0];
+  area.innerHTML = suggestions.map((s,i)=>{
+    const wsc=WS_CLASS[s.ws]||'';
+    const confc=s.confidence==='High'?'conf-high':s.confidence==='Medium'?'conf-med':'conf-low';
+    const wsOpts=Object.keys(MILESTONES).map(k=>`<option value="${k}" ${k===s.ws?'selected':''}>${k}</option>`).join('');
+    const msOpts=(MILESTONES[s.ws]||[]).map(m=>`<option value="${m}" ${m===s.milestone?'selected':''}>${m}</option>`).join('');
+    return `<div class="suggestion-block" id="sg-${i}">
+      <div class="s-task">${s.task}</div>
+      <div class="s-meta">
+        ${s.hours!=null?`<span class="s-hrs">${s.hours}h</span>`:''}
+        <span class="pill ${wsc}">${s.ws}</span>
+        <span class="pill ${confc}">${s.confidence}</span>
+      </div>
+      <div class="s-reason">${s.reason}</div>
+      <div class="edit-row">
+        <div class="field"><label>Workstream</label>
+          <select id="sg-ws-${i}" onchange="sgUpdateMs(${i})">${wsOpts}</select>
+        </div>
+        <div class="field"><label>Milestone</label>
+          <select id="sg-ms-${i}">${msOpts}</select>
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top:10px;">
+        <div class="field"><label>Hours</label>
+          <input type="number" id="sg-hrs-${i}" value="${s.hours!=null?s.hours:''}" min="0.25" step="0.25" placeholder="hours" />
+        </div>
+        <div class="field"><label>Week of</label>
+          <input type="date" id="sg-week-${i}" value="${today}" />
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:10px;">
+        <button class="btn-confirm" onclick="confirmSuggestion(${i})">Confirm &amp; add to log</button>
+        <button class="btn-reject" onclick="rejectSuggestion(${i})">Dismiss</button>
+        <span id="sg-st-${i}" style="font-size:12px;"></span>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('confirm-all-row').style.display='flex';
+  updateConfirmHint();
+}
+
+function sgUpdateMs(i) {
+  const ws=document.getElementById(`sg-ws-${i}`).value;
+  document.getElementById(`sg-ms-${i}`).innerHTML=(MILESTONES[ws]||[]).map(m=>`<option value="${m}">${m}</option>`).join('');
+}
+
+function confirmSuggestion(i) {
+  const hrs=parseFloat(document.getElementById(`sg-hrs-${i}`).value);
+  const week=document.getElementById(`sg-week-${i}`).value;
+  const st=document.getElementById(`sg-st-${i}`);
+  if(!hrs||hrs<=0){st.textContent='Add hours first';st.className='err';return;}
+  if(!week){st.textContent='Add week date';st.className='err';return;}
+  const s=suggestions[i];
+  entries.push({id:Date.now()+i,task:s.task,week,hours:hrs,
+    ws:document.getElementById(`sg-ws-${i}`).value,
+    milestone:document.getElementById(`sg-ms-${i}`).value,
+    person:document.getElementById('paste-person').value.trim(),
+    conf:s.confidence});
+  document.getElementById(`sg-${i}`).classList.add('confirmed');
+  st.textContent='Added to log'; st.className='ok';
+  updateLogCount(); updateConfirmHint();
+}
+
+function rejectSuggestion(i) { document.getElementById(`sg-${i}`).classList.add('rejected'); }
+
+function confirmAll() {
+  suggestions.forEach((_,i)=>{
+    const b=document.getElementById(`sg-${i}`);
+    if(!b||b.classList.contains('confirmed')||b.classList.contains('rejected')) return;
+    confirmSuggestion(i);
+  });
+}
+
+function updateConfirmHint() {
+  document.getElementById('confirm-hint').textContent=
+    `${document.querySelectorAll('.suggestion-block.confirmed').length} of ${suggestions.length} added`;
+}
+
+function addManualEntry() {
+  const task=document.getElementById('f-task').value.trim();
+  const week=document.getElementById('f-week').value;
+  const hours=parseFloat(document.getElementById('f-hours').value);
+  const ws=document.getElementById('f-ws').value;
+  const milestone=document.getElementById('f-milestone').value;
+  const person=document.getElementById('f-person').value.trim();
+  const conf=document.getElementById('f-conf').value;
+  const msg=document.getElementById('m-msg');
+  if(!task){msg.textContent='Task required';return;}
+  if(!week){msg.textContent='Week required';return;}
+  if(!hours||hours<=0){msg.textContent='Hours required';return;}
+  if(!ws){msg.textContent='Select workstream';return;}
+  if(!milestone){msg.textContent='Select milestone';return;}
+  msg.textContent='';
+  entries.push({id:Date.now(),task,week,hours,ws,milestone,person,conf});
+  clearManual(); updateLogCount();
+}
+
+function clearManual() {
+  ['f-task','f-hours','f-person'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-ws').value='';
+  document.getElementById('f-conf').value='Medium';
+  document.getElementById('f-milestone').innerHTML='<option value="" disabled selected>Select workstream first…</option>';
+  document.getElementById('m-msg').textContent='';
+}
+
+function updateLogCount() {
+  document.getElementById('log-count').textContent=entries.length?`(${entries.length})`:'';
+}
+
+function fmtDate(d) {
+  if(!d) return '';
+  const [y,m,day]=d.split('-');
+  return `${day}/${m}/${y.slice(2)}`;
+}
+
+function renderLog() {
+  const total=entries.reduce((s,e)=>s+e.hours,0);
+  const ws7=entries.filter(e=>e.ws==='WS7').reduce((s,e)=>s+e.hours,0);
+  const people=new Set(entries.filter(e=>e.person).map(e=>e.person)).size;
+  document.getElementById('s-total').textContent=Number.isInteger(total)?total:total.toFixed(1);
+  document.getElementById('s-entries').textContent=entries.length;
+  document.getElementById('s-ws7').textContent=Number.isInteger(ws7)?ws7:ws7.toFixed(1);
+  document.getElementById('s-people').textContent=people;
+  const area=document.getElementById('log-area');
+  if(!entries.length){area.innerHTML='<div class="empty">No entries yet — add some above</div>';return;}
+  const sorted=[...entries].sort((a,b)=>b.week.localeCompare(a.week));
+  area.innerHTML=`<table>
+    <thead><tr><th>Task</th><th>Week</th><th style="text-align:right">Hrs</th><th>WS</th><th>Milestone</th><th>Person</th><th>Conf.</th><th></th></tr></thead>
+    <tbody>${sorted.map(e=>`<tr>
+      <td style="max-width:160px">${e.task}</td>
+      <td style="white-space:nowrap;font-family:'DM Mono',monospace;font-size:12px">${fmtDate(e.week)}</td>
+      <td style="text-align:right;font-weight:500;font-family:'DM Mono',monospace">${e.hours}</td>
+      <td><span class="pill ${WS_CLASS[e.ws]||''}">${e.ws}</span></td>
+      <td style="max-width:160px;color:var(--text-muted);font-size:12px">${e.milestone}</td>
+      <td style="color:var(--text-muted);font-size:12px">${e.person||'—'}</td>
+      <td><span class="pill ${e.conf==='High'?'conf-high':e.conf==='Medium'?'conf-med':'conf-low'}">${e.conf}</span></td>
+      <td><button style="background:none;border:none;cursor:pointer;color:var(--text-faint);font-size:18px;line-height:1;padding:0 4px" onclick="removeEntry(${e.id})">×</button></td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function removeEntry(id) {
+  entries=entries.filter(e=>e.id!==id);
+  updateLogCount(); renderLog();
+}
+
+function exportCSV() {
+  if(!entries.length) return;
+  const rows=[['Task','Week','Hours','Workstream','Milestone','Person','Confidence']];
+  entries.forEach(e=>rows.push([e.task,fmtDate(e.week),e.hours,WS_LABELS[e.ws]||e.ws,e.milestone,e.person,e.conf]));
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='awaze-hours.csv';
+  a.click();
+}
+
+function copyMilestonePrompt() {
+  const raw=document.getElementById('ms-raw-input').value.trim();
+  if(!raw) return;
+  const prompt=`Parse this milestone list into a JSON object. Return ONLY raw JSON, no markdown, no explanation.
+
+Keys must be workstream codes WS1–WS7. Values must be arrays of exact milestone name strings.
+
+Input:
+${raw}`;
+  navigator.clipboard.writeText(prompt).then(()=>{
+    const el=document.getElementById('ms-copy-msg');
+    el.style.display='inline';
+    setTimeout(()=>{ el.style.display='none'; },3000);
+  });
+}
+
+function loadMilestones() {
+  const raw=document.getElementById('ms-json-input').value.trim();
+  const msg=document.getElementById('ms-msg');
+  try {
+    const parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    if(typeof parsed!=='object'||Array.isArray(parsed)) throw new Error();
+    MILESTONES=parsed;
+    const now=new Date();
+    document.getElementById('version-badge').textContent=
+      `milestones: ${now.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}`;
+    msg.textContent='Updated successfully'; msg.className='ok';
+    renderMilestoneDisplay(); populateWSDropdown();
+    setTimeout(()=>{ msg.textContent=''; },3000);
+  } catch(e) {
+    msg.textContent="Could not parse — copy the full JSON object from Claude's reply";
+    msg.className='err';
+  }
+}
+
+function renderMilestoneDisplay() {
+  document.getElementById('ms-display').innerHTML=Object.entries(MILESTONES).map(([ws,ms])=>`
+    <div class="ms-group">
+      <div class="ms-group-header"><span class="pill ${WS_CLASS[ws]||''}">${ws}</span>${WS_LABELS[ws]||ws}</div>
+      <div class="ms-list">${ms.map(m=>`<div class="ms-item">${m}</div>`).join('')}</div>
+    </div>`).join('');
+}
+
+document.getElementById('f-week').valueAsDate=new Date();
+renderMilestoneDisplay();
+populateWSDropdown();
+</script>
+</body>
+</html>
