@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Awaze 7N Midline Analysis — May 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f7f6f3; --surface: #ffffff; --surface-2: #f0efe9;
+    --border: rgba(0,0,0,0.09); --border-strong: rgba(0,0,0,0.15);
+    --text-primary: #1a1916; --text-secondary: #6b6a65; --text-muted: #9c9b96;
+    --red: #c94c28; --red-bg: #fdf1ed; --red-light: #f5c9ba;
+    --amber: #b06e0a; --amber-bg: #fdf5e6;
+    --green: #1a7a4a; --green-bg: #edf7f2; --green-light: #a3d9bc;
+    --accent: #c94c28; --radius: 10px; --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); font-size: 14px; line-height: 1.6; min-height: 100vh; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo-mark { width: 34px; height: 34px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: white; }
+  .header-title { font-size: 15px; font-weight: 600; }
+  .header-sub { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
+  .header-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .meta-pill { background: var(--surface-2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: 11px; color: var(--text-secondary); }
+  main { max-width: 1080px; margin: 0 auto; padding: 28px 32px 60px; }
+  .section { margin-bottom: 32px; }
+  .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+  .section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+  .section-note { font-size: 12px; color: var(--text-muted); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
+  .metric-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 5px; }
+  .metric-value { font-size: 26px; font-weight: 300; letter-spacing: -0.5px; }
+  .metric-value.neg { color: var(--red); }
+  .metric-value.pos { color: var(--green); }
+  .metric-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .chart-card { padding: 18px 20px; }
+  .chart-controls { display: flex; gap: 6px; margin-bottom: 14px; }
+  .ctrl-btn { font-size: 12px; font-weight: 500; font-family: 'DM Sans', sans-serif; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border-strong); background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease; }
+  .ctrl-btn:hover { background: var(--surface-2); }
+  .ctrl-btn.active { background: var(--text-primary); color: white; border-color: var(--text-primary); }
+  .legend-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .legend-line { width: 18px; height: 2px; border-radius: 1px; flex-shrink: 0; }
+  .chart-wrap { position: relative; width: 100%; }
+  .tier-summary { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 16px; }
+  .tier-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 8px; text-align: center; background: var(--surface); box-shadow: var(--shadow); }
+  .tier-num { font-size: 20px; font-weight: 300; letter-spacing: -0.5px; }
+  .tier-label { font-size: 10px; color: var(--text-muted); margin-top: 2px; line-height: 1.3; }
+  .insight-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .insight-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; background: var(--surface); box-shadow: var(--shadow); }
+  .insight-heading { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .insight-body { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+  .insight-card.warn { border-left: 3px solid var(--red); }
+  .insight-card.caution { border-left: 3px solid var(--amber); }
+  .insight-card.ok { border-left: 3px solid var(--green); }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--text-muted); text-transform: uppercase; padding: 9px 12px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+  tbody td { padding: 9px 12px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface-2); }
+  .mono { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-secondary); }
+  .num-neg { color: var(--red); font-weight: 500; }
+  .num-pos { color: var(--green); font-weight: 500; }
+  .num-neutral { color: var(--text-secondary); }
+  .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; }
+  .badge-severe { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-light); }
+  .badge-large { background: #fff3ec; color: #c94c28; border: 1px solid #f5c9ba; }
+  .badge-moderate { background: var(--amber-bg); color: var(--amber); border: 1px solid #f5d49a; }
+  .callout { border-radius: var(--radius); padding: 12px 16px; margin-bottom: 10px; font-size: 12px; line-height: 1.65; }
+  .callout.red { background: var(--red-bg); border: 1px solid var(--red-light); color: #8b2e14; }
+  .callout.amber { background: var(--amber-bg); border: 1px solid #f5d49a; color: #7a4c07; }
+  .callout strong { font-weight: 600; }
+  footer { text-align: center; padding: 20px; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 32px; }
+  @media (max-width: 800px) {
+    main { padding: 16px; } header { padding: 14px 16px; flex-direction: column; align-items: flex-start; gap: 10px; }
+    .metric-grid { grid-template-columns: repeat(2, 1fr); }
+    .tier-summary { grid-template-columns: repeat(4, 1fr); }
+    .insight-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo-mark">BP</div>
+    <div>
+      <div class="header-title">Awaze — 7-Night Midline Analysis</div>
+      <div class="header-sub">Cottages.com DP Portfolio · Generated 4 May 2026</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <span class="meta-pill">13,040 listings</span>
+    <span class="meta-pill">9,922 owners</span>
+    <span class="meta-pill">May 2026 – Jan 2028</span>
+    <span class="meta-pill">Internal review only</span>
+  </div>
+</header>
+
+<main>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Portfolio summary</div>
+      <div class="section-note">Excl. 13 listings with zero current midline</div>
+    </div>
+    <div class="metric-grid">
+      <div class="metric-card"><div class="metric-label">Avg current 7N midline</div><div class="metric-value">£906</div><div class="metric-sub">Portfolio average</div></div>
+      <div class="metric-card"><div class="metric-label">Avg proposed 7N midline</div><div class="metric-value">£849</div><div class="metric-sub">−£57 vs current</div></div>
+      <div class="metric-card"><div class="metric-label">Median change (all rows)</div><div class="metric-value neg">−5.8%</div><div class="metric-sub">Mean: −5.0%</div></div>
+      <div class="metric-card"><div class="metric-label">Owners in flat band (±10%)</div><div class="metric-value pos">65.9%</div><div class="metric-sub">6,541 of 9,922 owners</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><div class="section-title">Key findings</div></div>
+    <div class="insight-grid">
+      <div class="insight-card warn">
+        <div class="insight-heading">⚠ April data anomaly</div>
+        <div class="insight-body">Rows dated before 1 May show an average drop of −65%. This is a pre-live artefact — Beyond's midlines weren't yet loaded. Disregard April; May 2026 onward is the operative window.</div>
+      </div>
+      <div class="insight-card caution">
+        <div class="insight-heading">⚡ January is the most contentious month</div>
+        <div class="insight-body">Jan 2027 has a median change of −17.8% with 76% of rows moving downward — higher than any other month. Likely a seasonality calibration issue worth reviewing before going live for that period.</div>
+      </div>
+      <div class="insight-card ok">
+        <div class="insight-heading">✓ Most owners in the flat band</div>
+        <div class="insight-body">65.9% of owners see average changes within ±10%. The genuinely high-risk cohort (>30% avg drop) is just 26 owners — severity is concentrated at the tail, not systemic.</div>
+      </div>
+      <div class="insight-card warn">
+        <div class="insight-heading">⚠ Top 2 severe cases need validation</div>
+        <div class="insight-body">Owner −6323... at £3,500 → £944 (−73%) and owner −1924... at £1,340 → £452 (−66%) look like data mapping anomalies rather than genuine repricing. Should be verified before any owner communication.</div>
+      </div>
+      <div class="insight-card caution">
+        <div class="insight-heading">⚡ Extreme increases also need review</div>
+        <div class="insight-body">The top "happy" owner is proposed +204% (£994 → £3,037). Large upward outliers can set owner expectations that don't materialise in bookings if the model is miscalibrated for those listings.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Monthly 7N midline movement</div>
+      <div class="section-note">April 2026 excluded (pre-live artefact)</div>
+    </div>
+    <div class="card chart-card">
+      <div class="chart-controls">
+        <button class="ctrl-btn active" onclick="switchChart(this,'price')">Avg price (£)</button>
+        <button class="ctrl-btn" onclick="switchChart(this,'delta')">% change</button>
+        <button class="ctrl-btn" onclick="switchChart(this,'direction')">Direction split</button>
+      </div>
+      <div class="legend-row" id="leg-price">
+        <div class="legend-item"><div class="legend-swatch" style="background:#1e5ea8"></div>Current midline</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#1a7a4a"></div>Proposed midline</div>
+      </div>
+      <div class="legend-row" id="leg-delta" style="display:none">
+        <div class="legend-item"><div class="legend-swatch" style="background:#c94c28"></div>Mean % change (bars)</div>
+        <div class="legend-item"><div class="legend-line" style="background:#6b6a65"></div>Median % change (line)</div>
+      </div>
+      <div class="legend-row" id="leg-direction" style="display:none">
+        <div class="legend-item"><div class="legend-swatch" style="background:#c94c28"></div>Drop &gt;5%</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#d3d1c9"></div>Flat ±5%</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#1a7a4a"></div>Rise &gt;5%</div>
+      </div>
+      <div class="chart-wrap" style="height:290px"><canvas id="mainChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Owner risk tier breakdown</div>
+      <div class="section-note">Based on each owner's avg 7N change across all weeks</div>
+    </div>
+    <div class="tier-summary" id="tierCards"></div>
+    <div class="card chart-card">
+      <div class="chart-wrap" style="height:200px"><canvas id="tierChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Owners most likely to raise issues</div>
+      <div class="section-note">Avg 7N drop &gt;20% — 469 owners total; showing top 20</div>
+    </div>
+    <div class="callout red"><strong>Action required:</strong> The top 2 owners (−73% and −66%) are likely data anomalies and should be validated before any owner communication. The 24 "Large" tier owners (30–50% avg drop) are the immediate priority for proactive outreach planning.</div>
+    <div class="card" style="overflow:hidden"><table><thead><tr><th>#</th><th>Owner hash</th><th>Listings</th><th>Avg current</th><th>Avg proposed</th><th>Avg change</th><th>Worst week</th><th>Tier</th></tr></thead><tbody id="riskBody"></tbody></table></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Owners likely to be happy — top 20 by avg increase</div>
+      <div class="section-note">474 owners total see avg 7N increase &gt;10%</div>
+    </div>
+    <div class="callout amber"><strong>Note:</strong> Several top owners are proposed rises of 80–200%. Large upward moves can set unrealistic expectations — worth a spot-check on these listings.</div>
+    <div class="card" style="overflow:hidden"><table><thead><tr><th>#</th><th>Owner hash</th><th>Listings</th><th>Avg current</th><th>Avg proposed</th><th>Avg change</th></tr></thead><tbody id="happyBody"></tbody></table></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Month-by-month detail</div>
+      <div class="section-note">April 2026 excluded</div>
+    </div>
+    <div class="card" style="overflow:hidden"><table><thead><tr><th>Month</th><th>Avg current</th><th>Avg proposed</th><th>Mean Δ</th><th>Median Δ</th><th>% dropping</th><th>% flat</th><th>% rising</th></tr></thead><tbody id="monthBody"></tbody></table></div>
+  </div>
+
+</main>
+<footer>Beyond Pricing · Awaze engagement · Internal use only · Generated 4 May 2026</footer>
+
+<script>
+const monthly=[{"year_month":"2026-05","avg_current":936.44,"avg_proposed":806.83,"avg_delta_pct":-13.87,"median_delta_pct":-10.31,"pct_up":14.68,"pct_flat":21.06,"pct_down":64.26},{"year_month":"2026-06","avg_current":980.8,"avg_proposed":941.18,"avg_delta_pct":-3.54,"median_delta_pct":-5.32,"pct_up":20.64,"pct_flat":28.24,"pct_down":51.12},{"year_month":"2026-07","avg_current":1156.41,"avg_proposed":1083.04,"avg_delta_pct":-5.6,"median_delta_pct":-7.67,"pct_up":18.0,"pct_flat":23.32,"pct_down":58.67},{"year_month":"2026-08","avg_current":1150.16,"avg_proposed":1108.28,"avg_delta_pct":-1.48,"median_delta_pct":-3.89,"pct_up":30.19,"pct_flat":22.66,"pct_down":47.15},{"year_month":"2026-09","avg_current":822.55,"avg_proposed":822.07,"avg_delta_pct":1.59,"median_delta_pct":0.85,"pct_up":37.71,"pct_flat":29.15,"pct_down":33.13},{"year_month":"2026-10","avg_current":782.47,"avg_proposed":774.49,"avg_delta_pct":1.1,"median_delta_pct":-0.28,"pct_up":37.51,"pct_flat":24.18,"pct_down":38.31},{"year_month":"2026-11","avg_current":670.81,"avg_proposed":623.94,"avg_delta_pct":-4.61,"median_delta_pct":-5.61,"pct_up":30.4,"pct_flat":18.44,"pct_down":51.16},{"year_month":"2026-12","avg_current":902.89,"avg_proposed":807.07,"avg_delta_pct":-8.87,"median_delta_pct":-11.35,"pct_up":23.29,"pct_flat":14.91,"pct_down":61.8},{"year_month":"2027-01","avg_current":726.5,"avg_proposed":588.7,"avg_delta_pct":-17.51,"median_delta_pct":-17.82,"pct_up":11.08,"pct_flat":13.11,"pct_down":75.81},{"year_month":"2027-02","avg_current":697.65,"avg_proposed":676.0,"avg_delta_pct":-0.64,"median_delta_pct":-1.95,"pct_up":37.64,"pct_flat":17.83,"pct_down":44.53},{"year_month":"2027-03","avg_current":755.07,"avg_proposed":697.27,"avg_delta_pct":-5.8,"median_delta_pct":-6.02,"pct_up":25.77,"pct_flat":21.76,"pct_down":52.47},{"year_month":"2027-04","avg_current":849.42,"avg_proposed":856.08,"avg_delta_pct":1.75,"median_delta_pct":-0.13,"pct_up":36.83,"pct_flat":26.84,"pct_down":36.33},{"year_month":"2027-05","avg_current":942.67,"avg_proposed":935.51,"avg_delta_pct":-0.31,"median_delta_pct":-2.69,"pct_up":30.74,"pct_flat":26.04,"pct_down":43.21},{"year_month":"2027-06","avg_current":992.19,"avg_proposed":973.23,"avg_delta_pct":-1.24,"median_delta_pct":-3.24,"pct_up":25.65,"pct_flat":30.6,"pct_down":43.76},{"year_month":"2027-07","avg_current":1141.92,"avg_proposed":1094.64,"avg_delta_pct":-3.99,"median_delta_pct":-5.9,"pct_up":19.24,"pct_flat":27.6,"pct_down":53.17},{"year_month":"2027-08","avg_current":1259.44,"avg_proposed":1135.24,"avg_delta_pct":-9.28,"median_delta_pct":-10.43,"pct_up":10.73,"pct_flat":20.72,"pct_down":68.55},{"year_month":"2027-09","avg_current":859.21,"avg_proposed":815.92,"avg_delta_pct":-3.89,"median_delta_pct":-4.45,"pct_up":22.66,"pct_flat":29.18,"pct_down":48.16},{"year_month":"2027-10","avg_current":808.49,"avg_proposed":790.5,"avg_delta_pct":-0.23,"median_delta_pct":-2.5,"pct_up":33.33,"pct_flat":22.75,"pct_down":43.92},{"year_month":"2027-11","avg_current":694.74,"avg_proposed":635.56,"avg_delta_pct":-6.45,"median_delta_pct":-8.45,"pct_up":25.53,"pct_flat":17.31,"pct_down":57.16},{"year_month":"2027-12","avg_current":921.06,"avg_proposed":814.11,"avg_delta_pct":-9.78,"median_delta_pct":-12.49,"pct_up":22.58,"pct_flat":14.17,"pct_down":63.25},{"year_month":"2028-01","avg_current":1118.01,"avg_proposed":974.12,"avg_delta_pct":-9.78,"median_delta_pct":-12.05,"pct_up":19.76,"pct_flat":15.3,"pct_down":64.94}];
+const tiers=[{tier:"Severe\n>50% drop",count:2,color:"#c94c28"},{tier:"Large\n30–50% drop",count:24,color:"#e07040"},{tier:"Moderate\n20–30% drop",count:443,color:"#b06e0a"},{tier:"Small\n10–20% drop",count:2435,color:"#b4b2a6"},{tier:"Flat\n±10%",count:6541,color:"#9c9b96"},{tier:"Increase\n10–30%",count:455,color:"#1a7a4a"},{tier:"Strong rise\n>30%",count:19,color:"#0e5c36"}];
+const atRisk=[{h:"-6323547606641631809",l:1,c:3500,p:944,d:-73.0,w:-90.9},{h:"-1924724907068441740",l:1,c:1340,p:452.2,d:-66.3,w:-88.3},{h:"-6010290963149296248",l:1,c:1010,p:571.9,d:-43.6,w:-80.6},{h:"-5545966988684435047",l:1,c:738.3,p:468.6,d:-36.7,w:-74.9},{h:"2774757609076684768",l:1,c:786.7,p:514.3,d:-35.8,w:-85.6},{h:"2415674292422636238",l:1,c:834.4,p:567.7,d:-34.5,w:-77.8},{h:"246389751877176961",l:1,c:810.4,p:551.5,d:-33.9,w:-79.7},{h:"2983621448032123004",l:1,c:1061.6,p:695.8,d:-33.7,w:-76.6},{h:"-7261499530382890813",l:1,c:815.1,p:564.3,d:-33.4,w:-76.1},{h:"-8321222260973189969",l:1,c:768.7,p:523.3,d:-33.4,w:-78.9},{h:"-2818400638293799446",l:1,c:706.6,p:480.3,d:-33.2,w:-90.9},{h:"-6084189738785427957",l:1,c:534.0,p:368.5,d:-32.9,w:-74.9},{h:"6410144091000715902",l:1,c:674.6,p:454.9,d:-32.7,w:-71.0},{h:"-2177253619278353063",l:1,c:714.6,p:493.7,d:-32.0,w:-66.9},{h:"3849385097137778857",l:3,c:772.7,p:538.2,d:-31.5,w:-73.8},{h:"-944016084878371875",l:1,c:2501,p:1713.7,d:-31.5,w:-69.7},{h:"-8873147999684280586",l:1,c:808.0,p:534.8,d:-31.4,w:-87.7},{h:"1677369921709504943",l:2,c:3687.6,p:2540.9,d:-31.0,w:-75.9},{h:"-6197879855571828530",l:1,c:854.5,p:583.2,d:-30.9,w:-71.6},{h:"-7276979211440049400",l:1,c:1933.2,p:1360.9,d:-30.6,w:-80.3}];
+const happy=[{h:"2030234155855367159",l:1,c:994.5,p:3036.8,d:204.4},{h:"8983086429147155948",l:1,c:1062.8,p:2171.1,d:111.1},{h:"-5801618764455871212",l:1,c:654.2,p:1314.7,d:107.3},{h:"5456168724844973050",l:1,c:545.7,p:1098.6,d:105.8},{h:"-290450835560929819",l:1,c:826.1,p:1592.8,d:98.9},{h:"-1183372358433913718",l:1,c:1078.5,p:2146.4,d:98.2},{h:"-1303470542270470817",l:1,c:927.1,p:1676.2,d:82.4},{h:"-7560364314818226835",l:1,c:548.8,p:998.1,d:81.9},{h:"-6379399785364124116",l:1,c:699.4,p:1269.2,d:81.0},{h:"4050729784536526453",l:1,c:797.7,p:1408.4,d:76.3},{h:"3673792369828824094",l:1,c:530.5,p:877.7,d:65.4},{h:"-8714571854710996887",l:1,c:588.4,p:942.9,d:64.0},{h:"2584886911542684513",l:1,c:997.5,p:1073.0,d:55.6},{h:"861339684106114539",l:1,c:623.3,p:940.4,d:50.1},{h:"1643287301624501966",l:4,c:683.8,p:815.7,d:49.7},{h:"3047662473578092428",l:2,c:992.4,p:1340.5,d:36.2},{h:"-968907396682291869",l:11,c:473.5,p:628.6,d:33.6},{h:"-3952496992675704570",l:1,c:1128.2,p:1428.9,d:30.7},{h:"-5856841191973452743",l:1,c:356.5,p:425.3,d:30.2},{h:"2512870891072885736",l:1,c:848.5,p:1085.9,d:29.6}];
+
+const fmt=v=>'£'+Math.round(v).toLocaleString('en-GB');
+const fmtPct=v=>(v>=0?'+':'')+v.toFixed(1)+'%';
+const labels=monthly.map(d=>{const[y,m]=d.year_month.split('-');return new Date(+y,+m-1,1).toLocaleString('en-GB',{month:'short',year:'2-digit'});});
+let activeChart=null;
+
+function buildPriceChart(){return{type:'bar',data:{labels,datasets:[{label:'Current',data:monthly.map(d=>Math.round(d.avg_current)),backgroundColor:'#1e5ea8',borderWidth:0,barPercentage:0.75,categoryPercentage:0.85},{label:'Proposed',data:monthly.map(d=>Math.round(d.avg_proposed)),backgroundColor:'#1a7a4a',borderWidth:0,barPercentage:0.75,categoryPercentage:0.85}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmt(ctx.raw)}}},scales:{x:{grid:{display:false},ticks:{font:{size:11},maxRotation:45,color:'#9c9b96'},border:{display:false}},y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>'£'+(v/1000).toFixed(0)+'k',font:{size:11},color:'#9c9b96'},border:{display:false}}}}};}
+function buildDeltaChart(){return{type:'bar',data:{labels,datasets:[{label:'Mean % change',data:monthly.map(d=>+d.avg_delta_pct.toFixed(1)),backgroundColor:monthly.map(d=>d.avg_delta_pct<0?'#c94c28':'#1a7a4a'),borderWidth:0,barPercentage:0.6,order:2},{label:'Median % change',type:'line',data:monthly.map(d=>+d.median_delta_pct.toFixed(1)),borderColor:'#6b6a65',borderWidth:2,pointRadius:3,pointBackgroundColor:'#6b6a65',fill:false,tension:0.3,order:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmtPct(ctx.raw)}}},scales:{x:{grid:{display:false},ticks:{font:{size:11},maxRotation:45,color:'#9c9b96'},border:{display:false}},y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>v+'%',font:{size:11},color:'#9c9b96'},border:{display:false}}}}};}
+function buildDirChart(){return{type:'bar',data:{labels,datasets:[{label:'Drop >5%',data:monthly.map(d=>+d.pct_down.toFixed(1)),backgroundColor:'#c94c28'},{label:'Flat ±5%',data:monthly.map(d=>+d.pct_flat.toFixed(1)),backgroundColor:'#d3d1c9'},{label:'Rise >5%',data:monthly.map(d=>+d.pct_up.toFixed(1)),backgroundColor:'#1a7a4a'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.raw+'%'}}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:11},maxRotation:45,color:'#9c9b96'},border:{display:false}},y:{stacked:true,max:100,grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>v+'%',font:{size:11},color:'#9c9b96'},border:{display:false}}}}};}
+
+function switchChart(btn,mode){
+  document.querySelectorAll('.ctrl-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  ['price','delta','direction'].forEach(k=>{document.getElementById('leg-'+k).style.display='none';});
+  document.getElementById('leg-'+mode).style.display='flex';
+  if(activeChart)activeChart.destroy();
+  activeChart=new Chart(document.getElementById('mainChart'),mode==='price'?buildPriceChart():mode==='delta'?buildDeltaChart():buildDirChart());
+}
+
+const tierCards=document.getElementById('tierCards');
+tiers.forEach(t=>{const d=document.createElement('div');d.className='tier-card';d.innerHTML=`<div class="tier-num" style="color:${t.color}">${t.count.toLocaleString()}</div><div class="tier-label">${t.tier.replace('\n','<br>')}</div>`;tierCards.appendChild(d);});
+
+new Chart(document.getElementById('tierChart'),{type:'bar',data:{labels:tiers.map(t=>t.tier.replace('\n','\n')),datasets:[{data:tiers.map(t=>t.count),backgroundColor:tiers.map(t=>t.color),borderWidth:0,barPercentage:0.65}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw.toLocaleString()+' owners'}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#9c9b96',maxRotation:0},border:{display:false}},y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:11},color:'#9c9b96'},border:{display:false}}}}});
+
+function riskBadge(d){if(d<-50)return'<span class="badge badge-severe">Severe</span>';if(d<-30)return'<span class="badge badge-large">Large</span>';return'<span class="badge badge-moderate">Moderate</span>';}
+
+const riskBody=document.getElementById('riskBody');
+atRisk.forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td style="color:#9c9b96;font-size:12px">${i+1}</td><td class="mono">${r.h}</td><td>${r.l}</td><td>${fmt(r.c)}</td><td>${fmt(r.p)}</td><td class="num-neg">${fmtPct(r.d)}</td><td style="color:#c94c28;font-size:12px">${fmtPct(r.w)}</td><td>${riskBadge(r.d)}</td>`;riskBody.appendChild(tr);});
+
+const happyBody=document.getElementById('happyBody');
+happy.forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td style="color:#9c9b96;font-size:12px">${i+1}</td><td class="mono">${r.h}</td><td>${r.l}</td><td>${fmt(r.c)}</td><td>${fmt(r.p)}</td><td class="num-pos">${fmtPct(r.d)}</td>`;happyBody.appendChild(tr);});
+
+const monthBody=document.getElementById('monthBody');
+monthly.forEach(d=>{const[y,m]=d.year_month.split('-');const label=new Date(+y,+m-1,1).toLocaleString('en-GB',{month:'long',year:'numeric'});const mc=d.median_delta_pct<-15?'num-neg':d.median_delta_pct>5?'num-pos':'num-neutral';const ac=d.avg_delta_pct<-15?'num-neg':d.avg_delta_pct>5?'num-pos':'num-neutral';const tr=document.createElement('tr');tr.innerHTML=`<td style="font-weight:500">${label}</td><td>${fmt(d.avg_current)}</td><td>${fmt(d.avg_proposed)}</td><td class="${ac}">${fmtPct(d.avg_delta_pct)}</td><td class="${mc}">${fmtPct(d.median_delta_pct)}</td><td class="${d.pct_down>60?'num-neg':'num-neutral'}">${d.pct_down.toFixed(1)}%</td><td>${d.pct_flat.toFixed(1)}%</td><td class="${d.pct_up>35?'num-pos':'num-neutral'}">${d.pct_up.toFixed(1)}%</td>`;monthBody.appendChild(tr);});
+
+activeChart=new Chart(document.getElementById('mainChart'),buildPriceChart());
+</script>
+</body>
+</html>
