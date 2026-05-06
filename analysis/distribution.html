@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Awaze — Price Distribution Analysis · May 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f7f6f3; --surface: #ffffff; --surface-2: #f0efe9;
+    --border: rgba(0,0,0,0.09); --border-strong: rgba(0,0,0,0.15);
+    --text-primary: #1a1916; --text-secondary: #6b6a65; --text-muted: #9c9b96;
+    --red: #c94c28; --red-bg: #fdf1ed; --red-light: #f5c9ba;
+    --amber: #b06e0a; --amber-bg: #fdf5e6; --amber-light: #f5d49a;
+    --green: #1a7a4a; --green-bg: #edf7f2; --green-light: #a3d9bc;
+    --blue: #1e5ea8; --blue-bg: #edf3fc; --blue-light: #b3cef0;
+    --accent: #c94c28; --radius: 10px; --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); font-size: 14px; line-height: 1.6; min-height: 100vh; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo-mark { width: 34px; height: 34px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: white; }
+  .header-title { font-size: 15px; font-weight: 600; }
+  .header-sub { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
+  .header-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .meta-pill { background: var(--surface-2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: 11px; color: var(--text-secondary); }
+  main { max-width: 1080px; margin: 0 auto; padding: 28px 32px 60px; }
+  .section { margin-bottom: 32px; }
+  .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+  .section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+  .section-note { font-size: 12px; color: var(--text-muted); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .chart-card { padding: 18px 20px; }
+  .callout { border-radius: var(--radius); padding: 14px 18px; margin-bottom: 12px; font-size: 13px; line-height: 1.7; }
+  .callout.blue { background: var(--blue-bg); border: 1px solid var(--blue-light); color: #143d70; }
+  .callout.green { background: var(--green-bg); border: 1px solid var(--green-light); color: #145a36; }
+  .callout.amber { background: var(--amber-bg); border: 1px solid var(--amber-light); color: #7a4c07; }
+  .callout strong { font-weight: 600; }
+  .callout p { margin-bottom: 8px; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* Tab switcher */
+  .tab-row { display: flex; gap: 0; margin-bottom: 20px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface-2); }
+  .tab-btn { flex: 1; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; padding: 10px 16px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease; border-right: 1px solid var(--border); }
+  .tab-btn:last-child { border-right: none; }
+  .tab-btn:hover { background: var(--surface); }
+  .tab-btn.active { background: var(--surface); color: var(--text-primary); font-weight: 600; box-shadow: inset 0 -2px 0 var(--accent); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Controls */
+  .ctrl-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .ctrl-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+  .ctrl-btn { font-size: 12px; font-weight: 500; font-family: 'DM Sans', sans-serif; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border-strong); background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease; }
+  .ctrl-btn:hover { background: var(--surface-2); }
+  .ctrl-btn.active { background: var(--text-primary); color: white; border-color: var(--text-primary); }
+  .select-ctrl { font-size: 12px; font-family: 'DM Sans', sans-serif; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-primary); cursor: pointer; }
+
+  .chart-wrap { position: relative; width: 100%; }
+  .legend-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary); }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+  /* Stat strip */
+  .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; box-shadow: var(--shadow); }
+  .stat-label { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; }
+  .stat-val { font-size: 22px; font-weight: 300; letter-spacing: -0.5px; }
+  .stat-val.neg { color: var(--red); }
+  .stat-val.pos { color: var(--green); }
+  .stat-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Stacked bar legend */
+  .bucket-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .bucket-pill { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+
+  footer { text-align: center; padding: 20px; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 32px; }
+  @media (max-width: 800px) {
+    main { padding: 16px; } header { padding: 14px 16px; flex-direction: column; align-items: flex-start; gap: 10px; }
+    .stat-strip { grid-template-columns: repeat(2, 1fr); }
+    .tab-btn { font-size: 12px; padding: 8px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo-mark">BP</div>
+    <div>
+      <div class="header-title">Awaze — Price Distribution Analysis</div>
+      <div class="header-sub">How Beyond's prices compare to Awaze's, by bucket · May 2026</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <span class="meta-pill">~13,000 listings</span>
+    <span class="meta-pill">May 2026 – Jan 2028</span>
+    <span class="meta-pill">Internal review only</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- Narrative -->
+  <div class="section">
+    <div class="callout blue">
+      <p><strong>How to read this analysis.</strong> These charts show the distribution of price differences between Beyond's prices and Awaze's current prices — bucketed by percentage band. Each bar represents the share of listing-weeks falling into that bracket. The goal is not for every listing to be priced identically to today's Awaze prices; it is for the overall portfolio to be priced more accurately, more dynamically, and in a way that captures more revenue across the booking curve.</p>
+      <p>A spread across buckets is expected and intentional. Beyond's pricing model uses demand signals, booking pace, lead time, and seasonality to move prices within a defined range around the midline. That range — the corridor — is designed to give flexibility without deviating excessively from the midline anchor.</p>
+    </div>
+
+  </div>
+
+  <!-- Tab switcher -->
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="switchTab('midlines')">Midline distribution</button>
+    <button class="tab-btn" onclick="switchTab('wp')">Working price distribution</button>
+  </div>
+
+  <!-- MIDLINES PANEL -->
+  <div class="panel active" id="panel-midlines">
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Midline distribution — Beyond proposed vs Awaze current</div>
+        <div class="section-note">% of listing-weeks falling into each price change bucket</div>
+      </div>
+
+      <div class="stat-strip" id="ml-stats"></div>
+
+      <div class="card chart-card">
+        <div class="ctrl-row">
+          <span class="ctrl-label">View:</span>
+          <button class="ctrl-btn active" onclick="switchMlView(this,'stacked')">Stacked %</button>
+          <button class="ctrl-btn" onclick="switchMlView(this,'grouped')">Grouped bars</button>
+          <span class="ctrl-label" style="margin-left:12px">Period:</span>
+          <button class="ctrl-btn active" id="ml-yr-btn" onclick="switchMlPeriod(this,'year')">By year</button>
+          <button class="ctrl-btn" id="ml-mo-btn" onclick="switchMlPeriod(this,'month')">By month</button>
+          <select class="select-ctrl" id="ml-yr-select" onchange="switchMlYear(this.value)" style="display:none">
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+            <option value="2028">2028</option>
+          </select>
+        </div>
+        <div class="bucket-legend" id="ml-legend"></div>
+        <div class="chart-wrap" style="height:320px"><canvas id="mlChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORKING PRICES PANEL -->
+  <div class="panel" id="panel-wp">
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Working price distribution — Beyond vs Awaze</div>
+        <div class="section-note">% of listing-months falling into each price change bucket (listing-level, ~12,700 listings)</div>
+      </div>
+
+      <div class="stat-strip" id="wp-stats"></div>
+
+      <div class="card chart-card">
+        <div class="ctrl-row">
+          <span class="ctrl-label">View:</span>
+          <button class="ctrl-btn active" onclick="switchWpView(this,'stacked')">Stacked %</button>
+          <button class="ctrl-btn" onclick="switchWpView(this,'grouped')">Grouped bars</button>
+          <span class="ctrl-label" style="margin-left:12px">Period:</span>
+          <button class="ctrl-btn active" id="wp-yr-btn" onclick="switchWpPeriod(this,'year')">By year</button>
+          <button class="ctrl-btn" id="wp-mo-btn" onclick="switchWpPeriod(this,'month')">By month</button>
+          <select class="select-ctrl" id="wp-yr-select" onchange="switchWpYear(this.value)" style="display:none">
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+          </select>
+        </div>
+        <div class="bucket-legend" id="wp-legend"></div>
+        <div class="chart-wrap" style="height:320px"><canvas id="wpChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+<footer>Beyond Pricing · Awaze engagement · Internal use only · Generated 6 May 2026</footer>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+
+const ML_YEARS = {"2026":{"<-30%":7.8,"-30 to -20%":10.2,"-20 to -10%":20.9,"-10 to 0%":24.8,"0 to 10%":18.0,"10 to 20%":9.9,"20 to 30%":4.7,">30%":3.7,"_n":941534},"2027":{"<-30%":7.5,"-30 to -20%":11.2,"-20 to -10%":20.9,"-10 to 0%":25.4,"0 to 10%":17.6,"10 to 20%":9.3,"20 to 30%":4.2,">30%":3.9,"_n":1377535},"2028":{"<-30%":15.8,"-30 to -20%":17.6,"-20 to -10%":21.0,"-10 to 0%":19.3,"0 to 10%":11.9,"10 to 20%":6.7,"20 to 30%":3.6,">30%":4.1,"_n":13229}};
+
+const ML_MONTHS = {"2026-04":{"<-30%":99.8,"-30 to -20%":0.1,"-20 to -10%":0.0,"-10 to 0%":0.0,"0 to 10%":0.0,"10 to 20%":0.0,"20 to 30%":0.0,">30%":0.1,"_n":13263},"2026-05":{"<-30%":15.4,"-30 to -20%":11.2,"-20 to -10%":24.3,"-10 to 0%":25.6,"0 to 10%":14.5,"10 to 20%":5.5,"20 to 30%":1.9,">30%":1.5,"_n":106104},"2026-06":{"<-30%":0.8,"-30 to -20%":7.7,"-20 to -10%":25.4,"-10 to 0%":33.5,"0 to 10%":19.9,"10 to 20%":7.4,"20 to 30%":2.9,">30%":2.3,"_n":119367},"2026-07":{"<-30%":1.8,"-30 to -20%":10.4,"-20 to -10%":30.0,"-10 to 0%":30.1,"0 to 10%":16.1,"10 to 20%":6.8,"20 to 30%":2.7,">30%":1.9,"_n":119367},"2026-08":{"<-30%":2.0,"-30 to -20%":9.7,"-20 to -10%":22.4,"-10 to 0%":25.4,"0 to 10%":18.8,"10 to 20%":11.4,"20 to 30%":6.0,">30%":4.2,"_n":119367},"2026-09":{"<-30%":1.5,"-30 to -20%":5.5,"-20 to -10%":14.5,"-10 to 0%":26.2,"0 to 10%":27.0,"10 to 20%":15.8,"20 to 30%":6.3,">30%":3.3,"_n":106104},"2026-10":{"<-30%":3.2,"-30 to -20%":7.8,"-20 to -10%":16.0,"-10 to 0%":23.9,"0 to 10%":21.8,"10 to 20%":14.5,"20 to 30%":7.0,">30%":5.7,"_n":119367},"2026-11":{"<-30%":11.8,"-30 to -20%":12.8,"-20 to -10%":17.1,"-10 to 0%":19.4,"0 to 10%":16.0,"10 to 20%":11.1,"20 to 30%":6.0,">30%":5.7,"_n":119367},"2026-12":{"<-30%":15.7,"-30 to -20%":17.2,"-20 to -10%":19.6,"-10 to 0%":17.4,"0 to 10%":12.2,"10 to 20%":8.0,"20 to 30%":4.6,">30%":5.1,"_n":119228},"2027-01":{"<-30%":26.2,"-30 to -20%":19.3,"-20 to -10%":21.1,"-10 to 0%":16.6,"0 to 10%":9.8,"10 to 20%":4.1,"20 to 30%":1.5,">30%":1.4,"_n":105844},"2027-02":{"<-30%":9.3,"-30 to -20%":10.5,"-20 to -10%":15.7,"-10 to 0%":18.2,"0 to 10%":16.7,"10 to 20%":12.8,"20 to 30%":8.1,">30%":8.8,"_n":105973},"2027-03":{"<-30%":9.1,"-30 to -20%":12.0,"-20 to -10%":19.7,"-10 to 0%":23.3,"0 to 10%":18.6,"10 to 20%":10.8,"20 to 30%":4.0,">30%":2.4,"_n":119223},"2027-04":{"<-30%":1.3,"-30 to -20%":5.9,"-20 to -10%":16.6,"-10 to 0%":26.7,"0 to 10%":23.3,"10 to 20%":14.3,"20 to 30%":6.7,">30%":5.1,"_n":119223},"2027-05":{"<-30%":1.7,"-30 to -20%":7.1,"-20 to -10%":20.3,"-10 to 0%":28.6,"0 to 10%":20.4,"10 to 20%":11.7,"20 to 30%":5.4,">30%":4.7,"_n":119223},"2027-06":{"<-30%":0.7,"-30 to -20%":5.3,"-20 to -10%":21.0,"-10 to 0%":34.0,"0 to 10%":22.7,"10 to 20%":9.5,"20 to 30%":3.7,">30%":3.1,"_n":105976},"2027-07":{"<-30%":0.9,"-30 to -20%":7.7,"-20 to -10%":26.5,"-10 to 0%":34.4,"0 to 10%":18.7,"10 to 20%":7.0,"20 to 30%":2.5,">30%":2.2,"_n":119223},"2027-08":{"<-30%":2.9,"-30 to -20%":16.2,"-20 to -10%":32.6,"-10 to 0%":29.6,"0 to 10%":13.0,"10 to 20%":3.9,"20 to 30%":1.0,">30%":0.8,"_n":119223},"2027-09":{"<-30%":2.7,"-30 to -20%":8.5,"-20 to -10%":21.1,"-10 to 0%":32.2,"0 to 10%":22.0,"10 to 20%":9.2,"20 to 30%":2.8,">30%":1.3,"_n":119223},"2027-10":{"<-30%":4.1,"-30 to -20%":9.7,"-20 to -10%":17.9,"-10 to 0%":24.2,"0 to 10%":19.7,"10 to 20%":12.0,"20 to 30%":5.7,">30%":6.5,"_n":105976},"2027-11":{"<-30%":13.1,"-30 to -20%":14.5,"-20 to -10%":19.5,"-10 to 0%":19.7,"0 to 10%":14.3,"10 to 20%":8.5,"20 to 30%":4.5,">30%":5.9,"_n":119223},"2027-12":{"<-30%":18.8,"-30 to -20%":17.5,"-20 to -10%":18.3,"-10 to 0%":16.4,"0 to 10%":11.7,"10 to 20%":7.7,"20 to 30%":4.3,">30%":5.2,"_n":119205},"2028-01":{"<-30%":15.8,"-30 to -20%":17.6,"-20 to -10%":21.0,"-10 to 0%":19.3,"0 to 10%":11.9,"10 to 20%":6.7,"20 to 30%":3.6,">30%":4.1,"_n":13229}};
+
+const WP_YEARS = {"2026":{"<-30%":4.5,"-30 to -20%":7.8,"-20 to -10%":13.7,"-10 to 0%":18.6,"0 to 10%":19.5,"10 to 20%":15.8,"20 to 30%":10.4,">30%":9.6,"_n":101888},"2027":{"<-30%":2.2,"-30 to -20%":3.9,"-20 to -10%":9.7,"-10 to 0%":19.5,"0 to 10%":26.7,"10 to 20%":20.9,"20 to 30%":10.5,">30%":6.5,"_n":152610}};
+
+const WP_MONTHS = {"2026-05":{"<-30%":24.6,"-30 to -20%":30.8,"-20 to -10%":26.5,"-10 to 0%":13.0,"0 to 10%":4.2,"10 to 20%":0.7,"20 to 30%":0.1,">30%":0.0,"_n":12736},"2026-06":{"<-30%":2.5,"-30 to -20%":8.8,"-20 to -10%":20.6,"-10 to 0%":27.9,"0 to 10%":23.5,"10 to 20%":11.8,"20 to 30%":3.8,">30%":1.0,"_n":12736},"2026-07":{"<-30%":1.2,"-30 to -20%":6.7,"-20 to -10%":22.0,"-10 to 0%":32.9,"0 to 10%":24.6,"10 to 20%":9.6,"20 to 30%":2.5,">30%":0.5,"_n":12736},"2026-08":{"<-30%":1.0,"-30 to -20%":4.4,"-20 to -10%":14.3,"-10 to 0%":27.1,"0 to 10%":29.0,"10 to 20%":16.9,"20 to 30%":6.0,">30%":1.4,"_n":12736},"2026-09":{"<-30%":0.2,"-30 to -20%":1.3,"-20 to -10%":4.7,"-10 to 0%":12.4,"0 to 10%":23.6,"10 to 20%":27.8,"20 to 30%":18.4,">30%":11.6,"_n":12736},"2026-10":{"<-30%":0.4,"-30 to -20%":1.4,"-20 to -10%":4.2,"-10 to 0%":8.6,"0 to 10%":15.5,"10 to 20%":23.4,"20 to 30%":22.9,">30%":23.7,"_n":12736},"2026-11":{"<-30%":4.8,"-30 to -20%":6.3,"-20 to -10%":9.8,"-10 to 0%":13.5,"0 to 10%":15.7,"10 to 20%":15.9,"20 to 30%":13.7,">30%":20.4,"_n":12736},"2026-12":{"<-30%":1.1,"-30 to -20%":2.9,"-20 to -10%":7.7,"-10 to 0%":13.7,"0 to 10%":20.1,"10 to 20%":20.7,"20 to 30%":15.9,">30%":18.0,"_n":12736},"2027-01":{"<-30%":13.6,"-30 to -20%":15.4,"-20 to -10%":22.8,"-10 to 0%":23.0,"0 to 10%":15.7,"10 to 20%":6.5,"20 to 30%":2.1,">30%":0.8,"_n":12723},"2027-02":{"<-30%":2.6,"-30 to -20%":5.3,"-20 to -10%":10.0,"-10 to 0%":15.5,"0 to 10%":20.8,"10 to 20%":21.4,"20 to 30%":13.2,">30%":11.2,"_n":12717},"2027-03":{"<-30%":2.3,"-30 to -20%":5.7,"-20 to -10%":13.7,"-10 to 0%":22.4,"0 to 10%":26.0,"10 to 20%":18.0,"20 to 30%":8.1,">30%":3.7,"_n":12717},"2027-04":{"<-30%":0.1,"-30 to -20%":0.6,"-20 to -10%":3.8,"-10 to 0%":13.7,"0 to 10%":28.2,"10 to 20%":28.8,"20 to 30%":15.8,">30%":9.0,"_n":12717},"2027-05":{"<-30%":0.1,"-30 to -20%":0.4,"-20 to -10%":3.4,"-10 to 0%":13.1,"0 to 10%":26.7,"10 to 20%":30.4,"20 to 30%":17.4,">30%":8.4,"_n":12717},"2027-06":{"<-30%":0.0,"-30 to -20%":0.5,"-20 to -10%":5.0,"-10 to 0%":21.0,"0 to 10%":35.9,"10 to 20%":24.6,"20 to 30%":8.1,">30%":4.8,"_n":12717},"2027-07":{"<-30%":0.1,"-30 to -20%":0.4,"-20 to -10%":4.4,"-10 to 0%":21.3,"0 to 10%":35.4,"10 to 20%":25.7,"20 to 30%":8.3,">30%":4.4,"_n":12717},"2027-08":{"<-30%":0.2,"-30 to -20%":2.2,"-20 to -10%":14.3,"-10 to 0%":32.6,"0 to 10%":31.8,"10 to 20%":13.6,"20 to 30%":3.9,">30%":1.3,"_n":12717},"2027-09":{"<-30%":0.3,"-30 to -20%":1.9,"-20 to -10%":8.4,"-10 to 0%":20.5,"0 to 10%":34.4,"10 to 20%":22.3,"20 to 30%":9.6,">30%":2.7,"_n":12717},"2027-10":{"<-30%":0.5,"-30 to -20%":1.5,"-20 to -10%":5.1,"-10 to 0%":12.7,"0 to 10%":20.9,"10 to 20%":24.8,"20 to 30%":19.1,">30%":15.4,"_n":12717},"2027-11":{"<-30%":4.6,"-30 to -20%":7.3,"-20 to -10%":13.0,"-10 to 0%":17.6,"0 to 10%":20.8,"10 to 20%":16.9,"20 to 30%":10.7,">30%":9.0,"_n":12717},"2027-12":{"<-30%":2.3,"-30 to -20%":5.9,"-20 to -10%":12.8,"-10 to 0%":20.7,"0 to 10%":23.6,"10 to 20%":17.9,"20 to 30%":9.5,">30%":7.3,"_n":12717}};
+
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
+const BUCKETS = ['<-30%','-30 to -20%','-20 to -10%','-10 to 0%','0 to 10%','10 to 20%','20 to 30%','>30%'];
+const COLORS = ['#8B2E14','#c94c28','#e07040','#f5c9ba','#a3d9bc','#1a7a4a','#145a36','#0e3d24'];
+const COLORS_LIGHT = ['rgba(139,46,20,0.75)','rgba(201,76,40,0.75)','rgba(224,112,64,0.75)','rgba(245,201,186,0.75)','rgba(163,217,188,0.75)','rgba(26,122,74,0.75)','rgba(20,90,54,0.75)','rgba(14,61,36,0.75)'];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let mlChart = null, wpChart = null;
+let mlViewMode = 'stacked', mlPeriodMode = 'year', mlSelectedYear = '2026';
+let wpViewMode = 'stacked', wpPeriodMode = 'year', wpSelectedYear = '2026';
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function getLabels(data) { return Object.keys(data).filter(k=>k!=='_n'); }
+function shortLabel(k) {
+  const m = k.split('-');
+  if(m.length===2) return new Date(+m[0],+m[1]-1,1).toLocaleString('en-GB',{month:'short',year:'2-digit'});
+  return k;
+}
+function buildDatasets(dataMap, keys) {
+  return BUCKETS.map((b,i)=>({
+    label: b,
+    data: keys.map(k=>dataMap[k][b]||0),
+    backgroundColor: COLORS[i],
+    borderWidth: 0,
+    barPercentage: 0.85,
+    categoryPercentage: 0.9
+  }));
+}
+function stackedOpts() {
+  return {responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.raw.toFixed(1)+'%'}}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:11},maxRotation:45,color:'#9c9b96'},border:{display:false}},y:{stacked:true,max:100,grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>v+'%',font:{size:11},color:'#9c9b96'},border:{display:false}}}};
+}
+function groupedOpts() {
+  return {responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.raw.toFixed(1)+'%'}}},scales:{x:{grid:{display:false},ticks:{font:{size:11},maxRotation:45,color:'#9c9b96'},border:{display:false}},y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>v+'%',font:{size:11},color:'#9c9b96'},border:{display:false}}}};
+}
+
+function buildLegend(containerId) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  BUCKETS.forEach((b,i)=>{
+    const item = document.createElement('div');
+    item.className='legend-item';
+    item.innerHTML=`<div class="legend-swatch" style="background:${COLORS[i]}"></div><span>${b}</span>`;
+    el.appendChild(item);
+  });
+}
+
+function computeStats(dataMap, keys) {
+  let totalBelow10=0, totalAbove10=0, totalN=0;
+  let below30=0, above30=0;
+  keys.forEach(k=>{
+    const n=dataMap[k]['_n'];
+    totalN+=n;
+    totalBelow10 += (dataMap[k]['<-30%']||0)+(dataMap[k]['-30 to -20%']||0)+(dataMap[k]['-20 to -10%']||0)+(dataMap[k]['-10 to 0%']||0);
+    totalAbove10 += (dataMap[k]['0 to 10%']||0)+(dataMap[k]['10 to 20%']||0)+(dataMap[k]['20 to 30%']||0)+(dataMap[k]['>30%']||0);
+    below30 += (dataMap[k]['<-30%']||0);
+    above30 += (dataMap[k]['>30%']||0);
+  });
+  const n=keys.length;
+  return {
+    pctBelow: (totalBelow10/n).toFixed(1),
+    pctAbove: (totalAbove10/n).toFixed(1),
+    pctBelow30: (below30/n).toFixed(1),
+    pctAbove30: (above30/n).toFixed(1),
+    totalN: totalN
+  };
+}
+
+// ── MIDLINES ─────────────────────────────────────────────────────────────────
+function renderMlStats(dataMap, keys) {
+  const s = computeStats(dataMap, keys);
+  document.getElementById('ml-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Below current midline</div><div class="stat-val neg">${s.pctBelow}%</div><div class="stat-sub">of listing-weeks</div></div>
+    <div class="stat-card"><div class="stat-label">At or above current midline</div><div class="stat-val pos">${s.pctAbove}%</div><div class="stat-sub">of listing-weeks</div></div>
+    <div class="stat-card"><div class="stat-label">Severe drops (&lt;−30%)</div><div class="stat-val neg">${s.pctBelow30}%</div><div class="stat-sub">avg across period</div></div>
+    <div class="stat-card"><div class="stat-label">Strong increases (&gt;30%)</div><div class="stat-val pos">${s.pctAbove30}%</div><div class="stat-sub">avg across period</div></div>
+  `;
+}
+
+function renderMlChart() {
+  let dataMap, keys;
+  if(mlPeriodMode==='year') {
+    dataMap=ML_YEARS; keys=Object.keys(ML_YEARS);
+  } else {
+    const allMonths=Object.keys(ML_MONTHS).filter(k=>k!=='2026-04');
+    keys = allMonths.filter(k=>k.startsWith(mlSelectedYear));
+    dataMap=ML_MONTHS;
+  }
+  renderMlStats(dataMap, keys);
+  const labels = mlPeriodMode==='year' ? keys : keys.map(shortLabel);
+  const datasets = buildDatasets(dataMap, keys);
+  if(mlChart) mlChart.destroy();
+  mlChart = new Chart(document.getElementById('mlChart'), {
+    type:'bar',
+    data:{labels, datasets},
+    options: mlViewMode==='stacked' ? stackedOpts() : groupedOpts()
+  });
+  buildLegend('ml-legend');
+}
+
+function switchMlView(btn, mode) {
+  document.querySelectorAll('#panel-midlines .ctrl-btn').forEach(b=>{ if(['stacked','grouped'].includes(b.textContent.toLowerCase().replace(' ','_'))) b.classList.remove('active'); });
+  btn.classList.add('active');
+  mlViewMode=mode; renderMlChart();
+}
+function switchMlPeriod(btn, mode) {
+  mlPeriodMode=mode;
+  document.getElementById('ml-yr-btn').classList.toggle('active', mode==='year');
+  document.getElementById('ml-mo-btn').classList.toggle('active', mode==='month');
+  document.getElementById('ml-yr-select').style.display = mode==='month'?'block':'none';
+  renderMlChart();
+}
+function switchMlYear(yr) { mlSelectedYear=yr; renderMlChart(); }
+
+// ── WORKING PRICES ────────────────────────────────────────────────────────────
+function renderWpStats(dataMap, keys) {
+  const s = computeStats(dataMap, keys);
+  document.getElementById('wp-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Beyond WP below Awaze WP</div><div class="stat-val neg">${s.pctBelow}%</div><div class="stat-sub">of listing-months</div></div>
+    <div class="stat-card"><div class="stat-label">Beyond WP at or above Awaze</div><div class="stat-val pos">${s.pctAbove}%</div><div class="stat-sub">of listing-months</div></div>
+    <div class="stat-card"><div class="stat-label">Deep discounts (&lt;−30%)</div><div class="stat-val neg">${s.pctBelow30}%</div><div class="stat-sub">avg across period</div></div>
+    <div class="stat-card"><div class="stat-label">Strong premium (&gt;30%)</div><div class="stat-val pos">${s.pctAbove30}%</div><div class="stat-sub">avg across period</div></div>
+  `;
+}
+
+function renderWpChart() {
+  let dataMap, keys;
+  if(wpPeriodMode==='year') {
+    dataMap=WP_YEARS; keys=Object.keys(WP_YEARS);
+  } else {
+    keys=Object.keys(WP_MONTHS).filter(k=>k.startsWith(wpSelectedYear));
+    dataMap=WP_MONTHS;
+  }
+  renderWpStats(dataMap, keys);
+  const labels = wpPeriodMode==='year' ? keys : keys.map(shortLabel);
+  const datasets = buildDatasets(dataMap, keys);
+  if(wpChart) wpChart.destroy();
+  wpChart = new Chart(document.getElementById('wpChart'), {
+    type:'bar',
+    data:{labels, datasets},
+    options: wpViewMode==='stacked' ? stackedOpts() : groupedOpts()
+  });
+  buildLegend('wp-legend');
+}
+
+function switchWpView(btn, mode) {
+  document.querySelectorAll('#panel-wp .ctrl-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  wpViewMode=mode; renderWpChart();
+}
+function switchWpPeriod(btn, mode) {
+  wpPeriodMode=mode;
+  document.getElementById('wp-yr-btn').classList.toggle('active', mode==='year');
+  document.getElementById('wp-mo-btn').classList.toggle('active', mode==='month');
+  document.getElementById('wp-yr-select').style.display = mode==='month'?'block':'none';
+  renderWpChart();
+}
+function switchWpYear(yr) { wpSelectedYear=yr; renderWpChart(); }
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+  if(name==='wp' && !wpChart) renderWpChart();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderMlChart();
+</script>
+</body>
+</html>
