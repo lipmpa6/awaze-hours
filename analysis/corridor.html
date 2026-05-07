@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Awaze — Corridor Analysis · May 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f7f6f3; --surface: #fff; --surface-2: #f0efe9;
+    --border: rgba(0,0,0,0.09); --border-strong: rgba(0,0,0,0.15);
+    --text-primary: #1a1916; --text-secondary: #6b6a65; --text-muted: #9c9b96;
+    --red: #c94c28; --red-bg: #fdf1ed; --red-light: #f5c9ba;
+    --amber: #b06e0a; --amber-bg: #fdf5e6; --amber-light: #f5d49a;
+    --green: #1a7a4a; --green-bg: #edf7f2; --green-light: #a3d9bc;
+    --blue: #1e5ea8; --blue-bg: #edf3fc; --blue-light: #b3cef0;
+    --accent: #c94c28; --radius: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); font-size: 14px; line-height: 1.6; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo-mark { width: 34px; height: 34px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: white; }
+  .header-title { font-size: 15px; font-weight: 600; }
+  .header-sub { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
+  .header-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+  .meta-pill { background: var(--surface-2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: 11px; color: var(--text-secondary); }
+  main { max-width: 1080px; margin: 0 auto; padding: 28px 32px 60px; }
+  .section { margin-bottom: 32px; }
+  .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+  .section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+  .section-note { font-size: 12px; color: var(--text-muted); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .chart-card { padding: 18px 20px; }
+  .callout { border-radius: var(--radius); padding: 13px 16px; margin-bottom: 10px; font-size: 13px; line-height: 1.65; }
+  .callout.green { background: var(--green-bg); border: 1px solid var(--green-light); color: #145a36; }
+  .callout.amber { background: var(--amber-bg); border: 1px solid var(--amber-light); color: #7a4c07; }
+  .callout.blue { background: var(--blue-bg); border: 1px solid var(--blue-light); color: #143d70; }
+  .callout strong { font-weight: 600; }
+
+  .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
+  .metric-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 5px; }
+  .metric-value { font-size: 26px; font-weight: 300; letter-spacing: -0.5px; }
+  .metric-value.neg { color: var(--red); }
+  .metric-value.pos { color: var(--green); }
+  .metric-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+  /* Corridor visual */
+  .corridor-vis { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; box-shadow: var(--shadow); margin-bottom: 10px; }
+  .corridor-track { position: relative; height: 48px; background: linear-gradient(to right, #f5c9ba 0%, #f5c9ba 18%, #edf7f2 18%, #edf7f2 82%, #fdf5e6 82%, #fdf5e6 100%); border-radius: 8px; overflow: visible; margin: 16px 0 8px; }
+  .corridor-zone { position: absolute; top: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+  .corridor-label { position: absolute; font-size: 10px; color: var(--text-muted); top: -18px; }
+  .corridor-marker { position: absolute; top: -8px; bottom: -8px; width: 3px; border-radius: 2px; }
+  .corridor-axis { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+  .avg-dot { position: absolute; width: 14px; height: 14px; border-radius: 50%; background: var(--blue); border: 2px solid white; top: 50%; transform: translate(-50%, -50%); box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+
+  .ctrl-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .ctrl-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+  .ctrl-btn { font-size: 12px; font-weight: 500; font-family: 'DM Sans', sans-serif; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border-strong); background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; }
+  .ctrl-btn:hover { background: var(--surface-2); }
+  .ctrl-btn.active { background: var(--text-primary); color: white; border-color: var(--text-primary); }
+  .legend-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .chart-wrap { position: relative; width: 100%; }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--text-muted); text-transform: uppercase; padding: 9px 12px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+  tbody td { padding: 9px 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface-2); }
+  .num-neg { color: var(--red); font-weight: 500; }
+  .num-pos { color: var(--green); font-weight: 500; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; }
+  .badge-ok { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-light); }
+  .badge-warn { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-light); }
+  .badge-alert { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-light); }
+
+  footer { text-align: center; padding: 20px; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 32px; }
+  @media (max-width: 800px) {
+    main { padding: 16px; } header { padding: 14px 16px; flex-direction: column; gap: 10px; }
+    .metric-grid { grid-template-columns: repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo-mark">BP</div>
+    <div>
+      <div class="header-title">Awaze — Corridor Analysis</div>
+      <div class="header-sub">Beyond working price vs midline corridor · May 2026</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <span class="meta-pill">12,741 listings</span>
+    <span class="meta-pill">1,121,208 listing-weeks</span>
+    <span class="meta-pill">May 2026 – Jan 2028</span>
+    <span class="meta-pill">Internal review only</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- Context -->
+  <div class="section" style="margin-bottom:20px">
+    <div class="callout green">
+      <strong>What the corridor means.</strong> The corridor defines the range within which Beyond's working price can move relative to the midline: no lower than −20% (the floor) and no higher than +20% (the ceiling). Hitting the corridor boundary is not an error — it is the system operating within agreed constraints. The goal is for working prices to sit comfortably within the corridor the vast majority of the time, moving dynamically in response to demand without needing to press against either bound.
+    </div>
+    <div class="callout blue">
+      <strong>Headline finding.</strong> Across 1.1M listing-weeks, 94.1% sit inside the tight corridor (−20% to +20%). The +20% ceiling is breached in just 1.9% of listing-weeks, peaking at 7.5% in January 2028. Floor breaches are almost entirely a go-live artefact — 81% in May, resolving rapidly through June and July, and effectively zero from October 2026 onwards.
+      <br><br><strong>On the May question:</strong> Yes — floor hits are heavily front-loaded within May. The first two weeks (w/c May 4 and May 11) see 98% and 96% floor hit rates respectively, with averages of around −39% vs midline. By the week of May 18 this drops to 75%, and the final week of May (May 25) is down to 57%. The dTBA close-in discount is steepest for the nearest weeks and reduces as the booking horizon extends — exactly as expected.
+    </div>
+  </div>
+
+  <!-- Summary metrics -->
+  <div class="section">
+    <div class="section-header"><div class="section-title">Full period summary</div></div>
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="metric-label">Inside corridor (−20% / +20%)</div>
+        <div class="metric-value pos">94.1%</div>
+        <div class="metric-sub">Tight band — 1,033,528 of 1,121,208 listing-weeks</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Floor hits (&lt;−20% of midline)</div>
+        <div class="metric-value neg">5.9%</div>
+        <div class="metric-sub">66,504 listing-weeks — almost all May 2026</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">+20% ceiling hits</div>
+        <div class="metric-value" style="color:var(--amber)">1.9%</div>
+        <div class="metric-sub">21,176 listing-weeks — max 7.5% in Jan 2028</div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- Corridor visual -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Where working prices sit in the corridor</div>
+      <div class="section-note">Overall distribution across all listing-months</div>
+    </div>
+    <div class="corridor-vis">
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">Working price position relative to midline — full period average</div>
+      <div style="position:relative;margin-top:24px">
+        <!-- Zone labels -->
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-bottom:6px">
+          <span style="color:var(--red);font-weight:600">◀ BELOW FLOOR</span>
+          <span style="color:var(--green);font-weight:600">INSIDE CORRIDOR</span>
+          <span style="color:var(--amber);font-weight:600">ABOVE CEILING ▶</span>
+        </div>
+        <!-- Track -->
+        <div style="position:relative;height:52px;border-radius:8px;overflow:hidden;background:#f0efe9">
+          <!-- Floor zone (left, <-20%) -->
+          <div style="position:absolute;left:0;top:0;bottom:0;width:18.2%;background:rgba(201,76,40,0.15);border-right:2px dashed var(--red)"></div>
+          <!-- Ceiling zone (right, >20%) -->
+          <div style="position:absolute;right:0;top:0;bottom:0;width:14.3%;background:rgba(176,110,10,0.1);border-left:2px dashed var(--amber)"></div>
+          <!-- Corridor fill -->
+          <div style="position:absolute;left:18.2%;right:14.3%;top:0;bottom:0;background:rgba(26,122,74,0.08)"></div>
+          <!-- Distribution bar — majority in 0-20% zone (centre-right of corridor) -->
+          <!-- Bars representing position buckets -->
+          <div style="position:absolute;bottom:0;left:0.9%;width:2.8%;height:30%;background:rgba(201,76,40,0.5);border-radius:2px 2px 0 0" title="<-50%: 0.1%"></div>
+          <div style="position:absolute;bottom:0;left:5%;width:7%;height:75%;background:rgba(201,76,40,0.4);border-radius:2px 2px 0 0" title="-50 to -30%: 2.7%"></div>
+          <div style="position:absolute;bottom:0;left:13%;width:5%;height:80%;background:rgba(201,76,40,0.3);border-radius:2px 2px 0 0" title="-30 to -20%: 2.9%"></div>
+          <div style="position:absolute;bottom:0;left:20%;width:5%;height:35%;background:rgba(26,122,74,0.3);border-radius:2px 2px 0 0" title="-20 to -10%: 4.2%"></div>
+          <div style="position:absolute;bottom:0;left:27%;width:6%;height:55%;background:rgba(26,122,74,0.4);border-radius:2px 2px 0 0" title="-10 to 0%: 6.6%"></div>
+          <div style="position:absolute;bottom:0;left:35%;width:12%;height:100%;background:rgba(26,122,74,0.5);border-radius:2px 2px 0 0" title="0 to 10%: 30.9%"></div>
+          <div style="position:absolute;bottom:0;left:49%;width:20%;height:100%;background:rgba(26,122,74,0.7);border-radius:2px 2px 0 0" title="10 to 20%: 52.0%"></div>
+          <div style="position:absolute;bottom:0;left:71%;width:4%;height:25%;background:rgba(26,122,74,0.3);border-radius:2px 2px 0 0" title="20 to 30%: 0.6%"></div>
+          <div style="position:absolute;bottom:0;left:76%;width:2%;height:15%;background:rgba(26,122,74,0.2);border-radius:2px 2px 0 0" title="30 to 50%: 0.1%"></div>
+          <!-- Avg marker -->
+          <div style="position:absolute;top:6px;bottom:6px;left:calc(18.2% + (6.0/70)*67.5%);width:2px;background:var(--blue);border-radius:1px"></div>
+          <div style="position:absolute;top:2px;left:calc(18.2% + (6.0/70)*67.5% - 20px);font-size:9px;color:var(--blue);font-weight:600;white-space:nowrap">avg +6%</div>
+        </div>
+        <!-- Axis labels -->
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:6px">
+          <span>−70%</span>
+          <span style="color:var(--red);font-weight:600">FLOOR −20%</span>
+          <span>0%</span>
+          <span style="color:var(--amber);font-weight:600">CEILING +20%</span>
+          <span>+70%</span>
+        </div>
+      </div>
+      <!-- Quick stats -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px">
+        <div style="text-align:center;font-size:11px;color:var(--text-secondary)"><div style="font-size:18px;font-weight:500;color:var(--red)">5.8%</div>Below floor zone</div>
+        <div style="text-align:center;font-size:11px;color:var(--text-secondary)"><div style="font-size:18px;font-weight:500;color:var(--green)">10.8%</div>Floor to 0%</div>
+        <div style="text-align:center;font-size:11px;color:var(--text-secondary)"><div style="font-size:18px;font-weight:500;color:var(--green)">82.9%</div>0% to ceiling</div>
+        <div style="text-align:center;font-size:11px;color:var(--text-secondary)"><div style="font-size:18px;font-weight:500">0.0%</div>Above ceiling</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monthly charts -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Corridor adherence by month</div>
+      <div class="section-note">% of listings hitting floor, inside corridor, or hitting ceiling</div>
+    </div>
+    <div class="card chart-card">
+      <div class="ctrl-row">
+        <span class="ctrl-label">View:</span>
+        <button class="ctrl-btn active" onclick="switchView(this,'stacked')">Stacked breakdown</button>
+        <button class="ctrl-btn" onclick="switchView(this,'floor')">Floor hit % only</button>
+        <button class="ctrl-btn" onclick="switchView(this,'ceil')">Ceiling hits (&gt;+20%)</button>
+        <button class="ctrl-btn" onclick="switchView(this,'position')">Avg WP position</button>
+        <button class="ctrl-btn" onclick="switchView(this,'range')">Percentile range</button>
+      </div>
+      <div class="legend-row" id="leg-stacked">
+        <div class="legend-item"><div class="legend-swatch" style="background:#c94c28"></div>Below floor (&lt;−20%)</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#1a7a4a"></div>Inside corridor (−20% to +20%)</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#b06e0a"></div>Above +20% ceiling</div>
+      </div>
+      <div class="legend-row" id="leg-floor" style="display:none">
+        <div class="legend-item"><div class="legend-swatch" style="background:#c94c28"></div>% of listings hitting floor (&lt;−20% of midline)</div>
+      </div>
+      <div class="legend-row" id="leg-ceil" style="display:none">
+        <div class="legend-item"><div class="legend-swatch" style="background:#b06e0a"></div>Above +20% ceiling</div>
+      </div>
+      <div class="legend-row" id="leg-position" style="display:none">
+        <div class="legend-item"><div class="legend-swatch" style="background:#1e5ea8"></div>Mean WP vs midline (%)</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#9c9b96"></div>Median WP vs midline (%)</div>
+      </div>
+      <div class="legend-row" id="leg-range" style="display:none">
+        <div class="legend-item"><div class="legend-swatch" style="background:rgba(30,94,168,0.2)"></div>P10–P90 range</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:rgba(30,94,168,0.5)"></div>P25–P75 range</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#1e5ea8"></div>Median</div>
+      </div>
+      <div class="chart-wrap" style="height:300px"><canvas id="mainChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Month by month table -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Month-by-month detail</div>
+    </div>
+    <div class="callout amber"><strong>May 2026 note:</strong> 84% floor hit rate in May reflects the go-live dTBA discount effect — not a structural issue. This resolves by June and is fully clear by September.</div>
+    <div class="card" style="overflow:hidden">
+      <table>
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Listings</th>
+            <th>Floor hits (&lt;−20%)</th>
+            <th>+20% ceiling hits</th>
+            <th>Inside corridor</th>
+            <th>Avg WP vs midline</th>
+            <th>Median</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="monthBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- May weekly breakdown -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">May 2026 — floor hits by week</div>
+      <div class="section-note">Answers the question: is May front-loaded?</div>
+    </div>
+    <div class="callout green">
+      <strong>Yes — heavily front-loaded.</strong> The first two weeks of May see ~97–98% floor hit rates, with working prices averaging −39% below midline. This is the dTBA close-in discount at its most extreme, applying to dates that are days away. By week 3 it drops to 75% and week 4 to 57%, as the booking horizon for those dates extends slightly. This is entirely expected behaviour — the discount is a function of lead time, not a systematic calibration error.
+    </div>
+    <div class="card" style="overflow:hidden">
+      <table>
+        <thead>
+          <tr>
+            <th>Week</th>
+            <th>Listings</th>
+            <th>Floor hit %</th>
+            <th>Avg WP vs midline</th>
+            <th>Median WP vs midline</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="mayBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+<footer>Beyond Pricing · Awaze engagement · Internal use only · Generated 7 May 2026</footer>
+
+<script>
+const monthly = [
+  {m:"2026-05",n:50964,floor:81.4,ceil_20:0.0,ceil_50:0.0,inside:18.6,avg:-31.4,med:-32.4,p10:-47.6,p25:-40.7,p75:-23.2,p90:-13.6},
+  {m:"2026-06",n:63705,floor:26.0,ceil_20:0.5,ceil_50:0.0,inside:73.4,avg:-11.4,med:-11.1,p10:-28.7,p25:-20.4,p75:-1.9,p90:5.5},
+  {m:"2026-07",n:50964,floor:9.2,ceil_20:2.1,ceil_50:0.0,inside:88.6,avg:-3.7,med:-3.6,p10:-19.4,p25:-12.1,p75:4.9,p90:12.2},
+  {m:"2026-08",n:63705,floor:5.7,ceil_20:1.2,ceil_50:0.0,inside:93.2,avg:-2.6,med:-2.1,p10:-16.2,p25:-9.3,p75:4.5,p90:10.5},
+  {m:"2026-09",n:50964,floor:0.2,ceil_20:4.4,ceil_50:0.2,inside:95.4,avg:4.8,med:3.3,p10:-3.6,p25:0.0,p75:9.0,p90:15.2},
+  {m:"2026-10",n:50964,floor:0.0,ceil_20:5.3,ceil_50:0.7,inside:94.7,avg:6.3,med:3.9,p10:0.0,p25:0.9,p75:9.1,p90:15.6},
+  {m:"2026-11",n:63705,floor:0.0,ceil_20:1.6,ceil_50:0.1,inside:98.4,avg:5.1,med:4.3,p10:0.6,p25:1.3,p75:7.3,p90:11.0},
+  {m:"2026-12",n:50964,floor:0.0,ceil_20:7.1,ceil_50:0.0,inside:92.9,avg:8.6,med:6.9,p10:1.0,p25:4.1,p75:11.6,p90:17.9},
+  {m:"2027-01",n:50964,floor:0.0,ceil_20:0.5,ceil_50:0.0,inside:99.5,avg:6.3,med:5.8,p10:0.9,p25:3.0,p75:9.5,p90:11.0},
+  {m:"2027-02",n:50964,floor:0.0,ceil_20:1.6,ceil_50:0.0,inside:98.4,avg:7.3,med:6.8,p10:1.0,p25:4.6,p75:9.7,p90:13.0},
+  {m:"2027-03",n:63705,floor:0.0,ceil_20:5.4,ceil_50:0.5,inside:94.6,avg:10.0,med:9.1,p10:4.6,p25:5.6,p75:11.4,p90:15.9},
+  {m:"2027-04",n:50964,floor:0.0,ceil_20:6.2,ceil_50:0.0,inside:93.8,avg:12.9,med:12.7,p10:8.9,p25:10.4,p75:13.6,p90:17.3},
+  {m:"2027-05",n:63705,floor:0.0,ceil_20:1.0,ceil_50:0.0,inside:99.0,avg:11.9,med:12.4,p10:8.8,p25:10.3,p75:13.0,p90:13.6},
+  {m:"2027-06",n:50964,floor:0.0,ceil_20:0.0,ceil_50:0.0,inside:100.0,avg:9.8,med:9.3,p10:8.6,p25:8.8,p75:10.6,p90:11.7},
+  {m:"2027-07",n:50964,floor:0.0,ceil_20:0.0,ceil_50:0.0,inside:100.0,avg:12.7,med:12.7,p10:12.2,p25:12.5,p75:13.0,p90:13.3},
+  {m:"2027-08",n:63705,floor:0.0,ceil_20:0.0,ceil_50:0.0,inside:100.0,avg:10.8,med:12.2,p10:7.1,p25:7.8,p75:12.7,p90:13.1},
+  {m:"2027-09",n:50964,floor:0.0,ceil_20:0.0,ceil_50:0.0,inside:100.0,avg:11.7,med:12.6,p10:7.5,p25:11.6,p75:13.2,p90:13.6},
+  {m:"2027-10",n:50964,floor:0.0,ceil_20:0.0,ceil_50:0.0,inside:100.0,avg:13.1,med:13.1,p10:12.5,p25:12.7,p75:13.4,p90:13.8},
+  {m:"2027-11",n:63705,floor:0.0,ceil_20:0.0,ceil_50:0.0,inside:100.0,avg:13.5,med:13.4,p10:12.6,p25:12.9,p75:14.0,p90:14.5},
+  {m:"2027-12",n:50964,floor:0.0,ceil_20:0.0,ceil_50:0.0,inside:100.0,avg:13.4,med:13.4,p10:12.5,p25:12.8,p75:14.0,p90:14.4},
+  {m:"2028-01",n:12741,floor:0.0,ceil_20:7.5,ceil_50:0.0,inside:92.5,avg:18.9,med:18.8,p10:18.1,p25:18.3,p75:19.3,p90:19.9},
+];
+
+const mayWeeks = [
+  {w:"w/c 4 May",floor:98.0,avg:-39.1,med:-39.2},
+  {w:"w/c 11 May",floor:96.2,avg:-38.0,med:-38.3},
+  {w:"w/c 18 May",floor:74.7,avg:-27.0,med:-27.5},
+  {w:"w/c 25 May",floor:56.8,avg:-21.4,med:-22.2},
+];
+
+const labels = monthly.map(d => {
+  const [y,m] = d.m.split('-');
+  return new Date(+y,+m-1,1).toLocaleString('en-GB',{month:'short',year:'2-digit'});
+});
+
+let activeChart = null;
+function fmtPct(v){ return (v>=0?'+':'')+v.toFixed(1)+'%'; }
+function stackedOpts(){ return {responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.raw.toFixed(1)+'%'}}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:11},maxRotation:45,color:'#9c9b96'},border:{display:false}},y:{stacked:true,max:100,grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>v+'%',font:{size:11},color:'#9c9b96'},border:{display:false}}}}; }
+function lineOpts(){ return {responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.raw.toFixed(1)+'%'}}},scales:{x:{grid:{display:false},ticks:{font:{size:11},maxRotation:45,color:'#9c9b96'},border:{display:false}},y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>v+'%',font:{size:11},color:'#9c9b96'},border:{display:false}}}}; }
+
+function buildStacked(){
+  return {type:'bar',data:{labels,datasets:[
+    {label:'Below floor (<−20%)',data:monthly.map(d=>d.floor),backgroundColor:'#c94c28',borderWidth:0},
+    {label:'Inside corridor (−20% to +20%)',data:monthly.map(d=>d.inside),backgroundColor:'#1a7a4a',borderWidth:0},
+    {label:'Above +20% ceiling',data:monthly.map(d=>d.ceil_20),backgroundColor:'#b06e0a',borderWidth:0}
+  ]},options:stackedOpts()};
+}
+function buildFloor(){
+  return {type:'bar',data:{labels,datasets:[
+    {label:'Floor hit %',data:monthly.map(d=>d.floor),backgroundColor:monthly.map(d=>d.floor>50?'#c94c28':d.floor>10?'#e07040':'#f5c9ba'),borderWidth:0,barPercentage:0.65}
+  ]},options:lineOpts()};
+}
+function buildCeil(){
+  return {type:'bar',data:{labels,datasets:[
+    {label:'Above +20% ceiling',data:monthly.map(d=>d.ceil_20),backgroundColor:'#b06e0a',borderWidth:0,barPercentage:0.65}
+  ]},options:lineOpts()};
+}
+function buildPosition(){
+  return {type:'line',data:{labels,datasets:[
+    {label:'Mean',data:monthly.map(d=>d.avg),borderColor:'#1e5ea8',backgroundColor:'rgba(30,94,168,0.08)',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#1e5ea8',fill:false,tension:0.3},
+    {label:'Median',data:monthly.map(d=>d.med),borderColor:'#9c9b96',borderWidth:1.5,borderDash:[4,3],pointRadius:0,fill:false,tension:0.3}
+  ]},options:lineOpts()};
+}
+function buildRange(){
+  return {type:'line',data:{labels,datasets:[
+    {label:'P10–P90',data:monthly.map(d=>d.p90),backgroundColor:'rgba(30,94,168,0.12)',borderColor:'transparent',fill:'+1',tension:0.3,pointRadius:0},
+    {label:'P10',data:monthly.map(d=>d.p10),backgroundColor:'rgba(30,94,168,0.12)',borderColor:'transparent',fill:false,tension:0.3,pointRadius:0},
+    {label:'P25–P75',data:monthly.map(d=>d.p75),backgroundColor:'rgba(30,94,168,0.3)',borderColor:'transparent',fill:'+1',tension:0.3,pointRadius:0},
+    {label:'P25',data:monthly.map(d=>d.p25),backgroundColor:'rgba(30,94,168,0.3)',borderColor:'transparent',fill:false,tension:0.3,pointRadius:0},
+    {label:'Median',data:monthly.map(d=>d.med),borderColor:'#1e5ea8',borderWidth:2.5,backgroundColor:'transparent',fill:false,tension:0.3,pointRadius:3,pointBackgroundColor:'#1e5ea8'},
+  ]},options:lineOpts()};
+}
+
+function switchView(btn, mode){
+  document.querySelectorAll('.ctrl-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  ['stacked','floor','ceil','position','range'].forEach(k=>{ document.getElementById('leg-'+k).style.display='none'; });
+  document.getElementById('leg-'+mode).style.display='flex';
+  if(activeChart) activeChart.destroy();
+  const cfg = mode==='stacked'?buildStacked():mode==='floor'?buildFloor():mode==='ceil'?buildCeil():mode==='position'?buildPosition():buildRange();
+  activeChart = new Chart(document.getElementById('mainChart'), cfg);
+}
+
+// Table
+const tbody = document.getElementById('monthBody');
+monthly.forEach(d => {
+  const [y,m] = d.m.split('-');
+  const label = new Date(+y,+m-1,1).toLocaleString('en-GB',{month:'long',year:'numeric'});
+  let badge = '<span class="badge badge-ok">✓ Clean</span>';
+  if(d.floor > 50) badge = '<span class="badge badge-alert">⚠ Go-live effect</span>';
+  else if(d.floor > 5) badge = '<span class="badge badge-warn">↓ Resolving</span>';
+  const fc = d.floor > 5 ? 'num-neg' : '';
+  const ac = d.avg >= 0 ? 'num-pos' : 'num-neg';
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="font-weight:500">${label}</td>
+    <td style="color:var(--text-muted)">${d.n.toLocaleString()}</td>
+    <td class="${fc}">${d.floor.toFixed(1)}%</td>
+    <td class="${d.ceil_20>2?'num-neg':d.ceil_20>0?'':'num-pos'}">${d.ceil_20.toFixed(1)}%</td>
+    <td class="${d.inside>=99?'num-pos':''}">${d.inside.toFixed(1)}%</td>
+    <td class="${ac}">${fmtPct(d.avg)}</td>
+    <td class="${ac}">${fmtPct(d.med)}</td>
+    <td>${badge}</td>
+  `;
+  tbody.appendChild(tr);
+});
+
+activeChart = new Chart(document.getElementById('mainChart'), buildStacked());
+
+// May weekly table
+const mayBody = document.getElementById('mayBody');
+mayWeeks.forEach(d => {
+  const fc = d.floor > 90 ? 'num-neg' : d.floor > 60 ? 'num-neg' : 'num-neg';
+  const ac = 'num-neg';
+  const badge = d.floor > 90
+    ? '<span class="badge badge-alert">⚠ Go-live effect</span>'
+    : d.floor > 60
+    ? '<span class="badge badge-warn">↓ Resolving</span>'
+    : '<span class="badge badge-warn">↓ Improving</span>';
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="font-weight:500">${d.w}</td>
+    <td style="color:var(--text-muted)">12,741</td>
+    <td class="${fc}">${d.floor.toFixed(1)}%</td>
+    <td class="${ac}">${fmtPct(d.avg)}</td>
+    <td class="${ac}">${fmtPct(d.med)}</td>
+    <td>${badge}</td>
+  `;
+  mayBody.appendChild(tr);
+});
+</script>
+</body>
+</html>

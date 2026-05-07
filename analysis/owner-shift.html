@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Awaze — Owner Midline Shift Detail · May 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=DM+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f7f6f3; --surface: #fff; --surface-2: #f0efe9;
+    --border: rgba(0,0,0,0.09); --border-strong: rgba(0,0,0,0.15);
+    --text-primary: #1a1916; --text-secondary: #6b6a65; --text-muted: #9c9b96;
+    --red: #c94c28; --red-bg: #fdf1ed; --red-light: #f5c9ba;
+    --amber: #b06e0a; --amber-bg: #fdf5e6; --amber-light: #f5d49a;
+    --green: #1a7a4a; --green-bg: #edf7f2; --green-light: #a3d9bc;
+    --blue: #1e5ea8; --blue-bg: #edf3fc; --blue-light: #b3cef0;
+    --accent: #c94c28; --radius: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); font-size: 14px; line-height: 1.6; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo-mark { width: 34px; height: 34px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: white; }
+  .header-title { font-size: 15px; font-weight: 600; }
+  .header-sub { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
+  .header-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+  .meta-pill { background: var(--surface-2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: 11px; color: var(--text-secondary); }
+  main { max-width: 1080px; margin: 0 auto; padding: 28px 32px 60px; }
+  .section { margin-bottom: 32px; }
+  .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+  .section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+  .section-note { font-size: 12px; color: var(--text-muted); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .chart-card { padding: 18px 20px; }
+  .callout { border-radius: var(--radius); padding: 13px 16px; margin-bottom: 10px; font-size: 13px; line-height: 1.65; }
+  .callout.green { background: var(--green-bg); border: 1px solid var(--green-light); color: #145a36; }
+  .callout.blue { background: var(--blue-bg); border: 1px solid var(--blue-light); color: #143d70; }
+  .callout.amber { background: var(--amber-bg); border: 1px solid var(--amber-light); color: #7a4c07; }
+  .callout strong { font-weight: 600; }
+  .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
+  .metric-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 5px; }
+  .metric-value { font-size: 26px; font-weight: 300; letter-spacing: -0.5px; }
+  .metric-value.neg { color: var(--red); }
+  .metric-value.pos { color: var(--green); }
+  .metric-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .ctrl-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .ctrl-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+  .ctrl-btn { font-size: 12px; font-weight: 500; font-family: 'DM Sans', sans-serif; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border-strong); background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; }
+  .ctrl-btn:hover { background: var(--surface-2); }
+  .ctrl-btn.active { background: var(--text-primary); color: white; border-color: var(--text-primary); }
+  .legend-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .chart-wrap { position: relative; width: 100%; }
+
+  /* Tier breakdown grid */
+  .tier-detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px; }
+  .tier-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
+  .tier-box-title { font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+  .tier-box-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--border); }
+  .tier-box-row:last-child { border-bottom: none; }
+  .tier-box-row .band { color: var(--text-secondary); font-family: 'DM Mono', monospace; font-size: 11px; }
+  .tier-box-row .cnt { font-weight: 500; }
+  .tier-box-row .bar { height: 4px; border-radius: 2px; margin-top: 2px; }
+
+  /* Range slider */
+  .range-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; font-size: 12px; color: var(--text-secondary); }
+  .range-controls input[type=range] { flex: 1; }
+  .range-label { font-family: 'DM Mono', monospace; font-size: 11px; min-width: 80px; text-align: center; }
+
+  footer { text-align: center; padding: 20px; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 32px; }
+  @media (max-width: 800px) {
+    main { padding: 16px; } header { padding: 14px 16px; flex-direction: column; gap: 10px; }
+    .metric-grid { grid-template-columns: repeat(2,1fr); }
+    .tier-detail-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo-mark">BP</div>
+    <div>
+      <div class="header-title">Awaze — Owner Midline Shift Detail</div>
+      <div class="header-sub">Granular 1% distribution of 7N midline changes · May 2026</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <span class="meta-pill">9,919 owners</span>
+    <span class="meta-pill">2.3M listing-weeks</span>
+    <span class="meta-pill">Avg change −5.1%</span>
+    <span class="meta-pill">Median −5.2%</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- Context -->
+  <div class="section" style="margin-bottom:20px">
+    <div class="callout blue">
+      <strong>What this shows.</strong> The tier breakdown in the main midline analysis groups owners into broad bands (±10% flat, 10–20% drop, etc.). This page zooms in to show where within those bands owners actually cluster — in particular, how many of the 6,541 "flat" owners are genuinely near-zero vs sitting at the edge of the ±10% boundary, and how the 2,435 "small drop" owners are distributed within the 10–20% range.
+    </div>
+  </div>
+
+  <!-- Summary stats -->
+  <div class="section">
+    <div class="section-header"><div class="section-title">Owner-level summary</div><div class="section-note">Avg 7N midline change per owner across all their listing-weeks</div></div>
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="metric-label">Median owner change</div>
+        <div class="metric-value neg">−5.2%</div>
+        <div class="metric-sub">Half of owners within ±5% of this</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">P25 → P75 range</div>
+        <div class="metric-value" style="font-size:20px;color:var(--text-secondary)">−11% → 0%</div>
+        <div class="metric-sub">Middle 50% of owners</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">P10 → P90 range</div>
+        <div class="metric-value" style="font-size:20px;color:var(--text-secondary)">−16% → +6%</div>
+        <div class="metric-sub">80% of owners within this range</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Owners beyond ±20%</div>
+        <div class="metric-value neg">469</div>
+        <div class="metric-sub">4.7% of all owners</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main histogram -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Full distribution — 1% bands</div>
+      <div class="section-note">Toggle between owner-level (avg per owner) and listing-week level (raw rows)</div>
+    </div>
+    <div class="card chart-card">
+      <div class="ctrl-row">
+        <span class="ctrl-label">View:</span>
+        <button class="ctrl-btn active" onclick="switchView(this,'owner')">Owner level</button>
+        <button class="ctrl-btn" onclick="switchView(this,'lw')">Listing-week level</button>
+      </div>
+      <div class="legend-row">
+        <div class="legend-item"><div class="legend-swatch" style="background:#c94c28"></div>Drop &gt;10%</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#b4b2a6"></div>Flat (±10%)</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#1a7a4a"></div>Increase &gt;10%</div>
+        <div class="legend-item" style="margin-left:8px"><div style="width:2px;height:12px;background:var(--blue);display:inline-block;margin-right:4px;border-radius:1px"></div>Median</div>
+      </div>
+      <div class="chart-wrap" style="height:320px"><canvas id="histChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Tier zoom-in -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Tier deep-dive — owner level</div>
+      <div class="section-note">Where owners cluster within the flat and small-drop tiers</div>
+    </div>
+
+    <div class="callout green">
+      <strong>The flat tier is genuinely centred.</strong> Of the 6,541 owners in the ±10% band, 56.5% sit within ±5% of their current midline — more than half are well inside the flat zone. Only 10.4% are in the +5% to +10% range. The largest single cluster is the −5% to −4% band (502 owners), reflecting the portfolio-level median, not a tail phenomenon.
+    </div>
+    <div class="callout amber">
+      <strong>Small-drop tier is front-weighted.</strong> Of the 2,435 owners seeing a 10–20% drop, 29% are in the −10% to −12% range — closest to the flat boundary — and 65% are between −10% and −15%. Only 11% are in the −18% to −20% range closest to the moderate-drop boundary. The average owner in this tier is at around −13%, not −18%.
+    </div>
+
+    <div class="tier-detail-grid">
+
+      <!-- Flat tier -->
+      <div class="tier-box">
+        <div class="tier-box-title" style="color:var(--text-secondary)">Flat tier (±10%) — 6,541 owners</div>
+        <div id="flatRows"></div>
+      </div>
+
+      <!-- Small drop tier -->
+      <div class="tier-box">
+        <div class="tier-box-title" style="color:var(--red)">Small drop tier (−10% to −20%) — 2,435 owners</div>
+        <div id="smallRows"></div>
+      </div>
+
+      <!-- Moderate drop tier -->
+      <div class="tier-box">
+        <div class="tier-box-title" style="color:var(--red)">Moderate drop tier (−20% to −30%) — 443 owners</div>
+        <div id="modRows"></div>
+      </div>
+
+      <!-- Increase tier -->
+      <div class="tier-box">
+        <div class="tier-box-title" style="color:var(--green)">Increase tier (+10% to +30%) — 455 owners</div>
+        <div id="incRows"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Cumulative view -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Cumulative owner distribution</div>
+      <div class="section-note">What % of owners sit at or below each threshold — owner level</div>
+    </div>
+    <div class="card chart-card">
+      <div class="chart-wrap" style="height:260px"><canvas id="cdfChart"></canvas></div>
+    </div>
+  </div>
+
+</main>
+<footer>Beyond Pricing · Awaze engagement · Internal use only · Generated 7 May 2026</footer>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const OWNER_DIST = {"-31":9,"-30":16,"-29":10,"-28":22,"-27":17,"-26":28,"-25":32,"-24":54,"-23":75,"-22":81,"-21":108,"-20":113,"-19":158,"-18":148,"-17":198,"-16":233,"-15":242,"-14":311,"-13":317,"-12":341,"-11":374,"-10":397,"-9":410,"-8":455,"-7":436,"-6":463,"-5":502,"-4":419,"-3":445,"-2":426,"-1":382,"0":416,"1":344,"2":284,"3":246,"4":234,"5":199,"6":145,"7":128,"8":114,"9":96,"10":67,"11":70,"12":40,"13":44,"14":40,"15":23,"16":27,"17":32,"18":17,"19":23,"20":8,"21":14,"22":15,"23":11,"24":7,"25":6,"26":4,"27":2,"28":4,"29":1,"30":2};
+const LW_DIST = {"-31":14708,"-30":16243,"-29":18064,"-28":19705,"-27":21671,"-26":23462,"-25":25921,"-24":27880,"-23":30180,"-22":32236,"-21":37031,"-20":36073,"-19":40755,"-18":43561,"-17":45915,"-16":48704,"-15":50243,"-14":52997,"-13":54953,"-12":56368,"-11":58566,"-10":57145,"-9":59812,"-8":60117,"-7":60745,"-6":60197,"-5":59638,"-4":58196,"-3":57744,"-2":55325,"-1":57362,"0":48300,"1":49787,"2":47468,"3":45145,"4":41701,"5":40731,"6":38635,"7":36519,"8":33659,"9":31107,"10":30238,"11":28184,"12":25766,"13":24265,"14":22389,"15":21273,"16":19359,"17":18489,"18":16446,"19":15744,"20":13522,"21":13520,"22":12233,"23":11422,"24":10056,"25":9658,"26":8841,"27":8049,"28":7331,"29":6952,"30":6432};
+
+const keys = Object.keys(OWNER_DIST).map(Number).sort((a,b)=>a-b);
+const labels = keys.map(k=>`${k}%`);
+
+function barColor(k){
+  if(k < -10) return '#c94c28';
+  if(k > 10) return '#1a7a4a';
+  return '#b4b2a6';
+}
+
+let activeChart = null;
+let cdfChart = null;
+
+function buildHist(dist){
+  const data = keys.map(k=>dist[String(k)]||0);
+  const medianK = -5; // closest 1% band to median
+  return {
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{
+        data,
+        backgroundColor: keys.map(k=>barColor(k)),
+        borderWidth:0,
+        barPercentage:0.95,
+        categoryPercentage:1.0
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>{
+          const total = data.reduce((a,b)=>a+b,0);
+          return ` ${ctx.raw.toLocaleString()} (${(ctx.raw/total*100).toFixed(1)}%)`;
+        }}},
+        annotation:{annotations:{
+          median:{type:'line',xMin:`${medianK}%`,xMax:`${medianK}%`,borderColor:'#1e5ea8',borderWidth:2,borderDash:[4,4]},
+          zeroLine:{type:'line',xMin:'0%',xMax:'0%',borderColor:'rgba(0,0,0,0.2)',borderWidth:1}
+        }}
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:9},color:'#9c9b96',maxRotation:90,callback:(v,i)=>keys[i]%5===0?`${keys[i]}%`:''},border:{display:false}},
+        y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:11},color:'#9c9b96'},border:{display:false}}
+      }
+    }
+  };
+}
+
+function switchView(btn, mode){
+  document.querySelectorAll('.ctrl-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(activeChart) activeChart.destroy();
+  activeChart = new Chart(document.getElementById('histChart'), buildHist(mode==='owner'?OWNER_DIST:LW_DIST));
+}
+
+// ── CDF ───────────────────────────────────────────────────────────────────────
+const ownerVals = keys.map(k=>OWNER_DIST[String(k)]||0);
+const total = ownerVals.reduce((a,b)=>a+b,0);
+let cumSum = 0;
+const cdfData = ownerVals.map(v=>{ cumSum+=v; return +(cumSum/total*100).toFixed(1); });
+
+cdfChart = new Chart(document.getElementById('cdfChart'),{
+  type:'line',
+  data:{labels,datasets:[{
+    label:'Cumulative % of owners',
+    data:cdfData,
+    borderColor:'#1e5ea8',
+    backgroundColor:'rgba(30,94,168,0.08)',
+    borderWidth:2,
+    pointRadius:0,
+    fill:true,
+    tension:0.3
+  }]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>` ${ctx.raw}% of owners at or below ${labels[ctx.dataIndex]}`}}
+    },
+    scales:{
+      x:{grid:{display:false},ticks:{font:{size:9},color:'#9c9b96',maxRotation:90,callback:(v,i)=>keys[i]%5===0?`${keys[i]}%`:''},border:{display:false}},
+      y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>v+'%',font:{size:11},color:'#9c9b96'},border:{display:false},max:100}
+    }
+  }
+});
+
+// ── TIER DEEP-DIVE ROWS ───────────────────────────────────────────────────────
+function renderTierRows(containerId, fromK, toK, color){
+  const el = document.getElementById(containerId);
+  const range = keys.filter(k=>k>=fromK && k<toK);
+  const counts = range.map(k=>OWNER_DIST[String(k)]||0);
+  const maxCount = Math.max(...counts);
+  range.forEach((k,i)=>{
+    const pct = total>0?(counts[i]/total*100).toFixed(1):'0';
+    const barW = maxCount>0?Math.round(counts[i]/maxCount*100):0;
+    const div = document.createElement('div');
+    div.className='tier-box-row';
+    div.style.flexDirection='column';
+    div.style.alignItems='flex-start';
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;width:100%">
+        <span class="band">${k}% to ${k+1}%</span>
+        <span class="cnt">${counts[i].toLocaleString()} <span style="color:var(--text-muted);font-size:11px">(${pct}%)</span></span>
+      </div>
+      <div style="width:100%;height:4px;background:var(--surface-2);border-radius:2px;margin-top:3px">
+        <div style="width:${barW}%;height:100%;background:${color};border-radius:2px;opacity:0.7"></div>
+      </div>`;
+    el.appendChild(div);
+  });
+}
+
+renderTierRows('flatRows', -10, 11, '#6b6a65');
+renderTierRows('smallRows', -20, -10, '#c94c28');
+renderTierRows('modRows', -30, -20, '#993c1d');
+renderTierRows('incRows', 10, 31, '#1a7a4a');
+
+// Init main chart
+activeChart = new Chart(document.getElementById('histChart'), buildHist(OWNER_DIST));
+</script>
+</body>
+</html>

@@ -17,6 +17,8 @@
   .icon-blue { background: #e6f1fb; }
   .icon-teal { background: #e1f5ee; }
   .icon-amber { background: #fdf5e6; }
+  .icon-purple { background: #f0ebfb; }
+  .icon-red { background: #fdf1ed; }
   .icon svg { width: 22px; height: 22px; }
   .card-body { flex: 1; }
   .card-title { font-size: 15px; font-weight: 500; color: #1a1a18; margin-bottom: 3px; }
@@ -70,6 +72,35 @@
     <div class="card-body">
       <div class="card-title">Price distribution analysis</div>
       <div class="card-desc">Bucket distribution of midline and working price differences — by year and month, with narrative context</div>
+    </div>
+    <div class="arrow">›</div>
+  </a>
+
+  <a class="card" href="corridor.html">
+    <div class="icon icon-purple">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#5a3a8a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12h18M3 6h18M3 18h18"/>
+        <circle cx="9" cy="6" r="1.5" fill="#5a3a8a"/>
+        <circle cx="15" cy="12" r="1.5" fill="#5a3a8a"/>
+        <circle cx="9" cy="18" r="1.5" fill="#5a3a8a"/>
+      </svg>
+    </div>
+    <div class="card-body">
+      <div class="card-title">Corridor analysis</div>
+      <div class="card-desc">How often Beyond's working price hits the ±20% corridor boundary — by month, with May weekly breakdown</div>
+    </div>
+    <div class="arrow">›</div>
+  </a>
+
+  <a class="card" href="owner-shift.html">
+    <div class="icon icon-red">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#8b2e14" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 3v18h18"/><path d="M7 16l4-8 4 6 3-4"/>
+      </svg>
+    </div>
+    <div class="card-body">
+      <div class="card-title">Owner midline shift detail</div>
+      <div class="card-desc">Granular 1% band distribution of midline changes — where owners cluster within each tier, owner vs listing-week level</div>
     </div>
     <div class="arrow">›</div>
   </a>
